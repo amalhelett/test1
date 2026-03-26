@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>FBA Inventory Analyzer</title>
+<title>Helett Inventory Analyzer</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -594,7 +594,7 @@
 <body>
 
 <header class="header">
-  <div class="header-logo">Inventory<span> Analyzer</span></div>
+  <div class="header-logo">Helett <span>Inventory Analyzer</span></div>
   <div class="header-tag">FBA + FC</div>
 </header>
 
@@ -620,8 +620,8 @@
         <!-- Quick-copy preset link -->
         <div class="quick-link-box">
           <span class="quick-link-label">FC File</span>
-          <span class="quick-link-url" title="https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3">
-            docs.google.com/…/1jZv_Qqeg2RWXssYroxyS3
+          <span class="quick-link-url" title="Copuy File Link">
+            https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4/edit?usp=sharing
           </span>
           <button class="quick-link-copy" id="quick-copy-btn" onclick="copyQuickLink()">Copy</button>
         </div>
@@ -786,7 +786,7 @@
 </main>
 
 <footer class="page-footer">
-  Designed &amp; Developed by Helett · Inventory Intelligence Dashboard · All rights reserved
+  Designed &amp; Developed by Amal Helett · Inventory Intelligence Dashboard
 </footer>
 
 <script>
@@ -867,7 +867,7 @@ function setLinkStatus(type, msg) {
 }
 
 // Copy the preset FC file link into clipboard and into the input
-const FC_PRESET_LINK = 'https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3';
+const FC_PRESET_LINK = 'https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4/edit?usp=sharing';
 function copyQuickLink() {
   navigator.clipboard.writeText(FC_PRESET_LINK).then(() => {
     const btn = document.getElementById('quick-copy-btn');
@@ -1458,12 +1458,12 @@ function renderTable() {
   tbody.innerHTML = rows.map(row => {
     const { base, issue } = getStatus(row);
     let badgeClass, badgeLabel, badgeTip;
-    if (base === 'out')      { badgeClass = 'badge-red';    badgeLabel = 'Out of Stock'; badgeTip = 'FBA Available = 0. No units ready to ship.'; }
-    else if (base === 'low') { badgeClass = 'badge-yellow'; badgeLabel = 'Low Stock';    badgeTip = 'FBA Available is under 50 units. Consider restocking soon.'; }
-    else                     { badgeClass = 'badge-green';  badgeLabel = 'Healthy';      badgeTip = 'FBA Available ≥ 50 units. Stock level is good.'; }
+    if (base === 'out')      { badgeClass = 'badge-red';    badgeLabel = 'Out of Stock'; badgeTip = 'FBA 0.'; }
+    else if (base === 'low') { badgeClass = 'badge-yellow'; badgeLabel = 'Low Stock';    badgeTip = 'FBA under 50 units.'; }
+    else                     { badgeClass = 'badge-green';  badgeLabel = 'Healthy';      badgeTip = 'Stock level Good.'; }
 
     const issueBadge = issue
-      ? `<span class="badge badge-issue" style="margin-left:4px" data-tip="Total unsellable units exceed total sellable — more bad stock than good. Investigate FC &amp; FBA returns.">⚠ Issue</span>` : '';
+      ? `<span class="badge badge-issue" style="margin-left:4px" data-tip="Unsellable exceeds Sellable.">⚠ Issue</span>` : '';
 
     return `<tr>
       <td class="sku-cell">${escHtml(row.sku)}</td>
