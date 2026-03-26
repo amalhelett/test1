@@ -336,12 +336,15 @@
     border-radius: var(--radius);
     overflow: hidden;
   }
-  .table-scroll {
+    .table-scroll {
     overflow-x: auto;
-    overflow-y: auto;
+    overflow-y: visible; /* 👈 KEY FIX */
     max-height: 600px;
-  }
-
+    }
+    table {
+    width: 100%;
+    table-layout: fixed; /* prevents columns from expanding and causing hidden horizontal scroll */
+    }
   table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 
   thead th {
