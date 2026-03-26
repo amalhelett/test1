@@ -486,6 +486,90 @@
   .link-status.err { color: #f87171; }
 
 
+  /* ── TOOLTIP ────────────────────────────────── */
+  [data-tip] { position: relative; cursor: help; }
+  [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1c2230;
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-size: 11.5px;
+    font-weight: 400;
+    line-height: 1.5;
+    padding: 7px 11px;
+    border-radius: 7px;
+    white-space: nowrap;
+    max-width: 240px;
+    white-space: normal;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 999;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  }
+  [data-tip]:hover::after { opacity: 1; }
+
+  /* ── QUICK LINK BOX ─────────────────────────── */
+  .quick-link-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(74,158,255,0.07);
+    border: 1px solid rgba(74,158,255,0.2);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    margin-bottom: 10px;
+  }
+  .quick-link-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+  }
+  .quick-link-url {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .quick-link-copy {
+    background: rgba(74,158,255,0.15);
+    border: none;
+    border-radius: 5px;
+    color: var(--blue);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+    font-family: var(--font);
+  }
+  .quick-link-copy:hover { background: rgba(74,158,255,0.28); }
+  .quick-link-copy.copied { color: var(--green); background: rgba(52,209,122,0.12); }
+
+  /* ── PAGE FOOTER ────────────────────────────── */
+  .page-footer {
+    margin-top: 48px;
+    padding: 20px 32px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    color: #2e3a4e;
+    font-size: 12px;
+    letter-spacing: 0.3px;
+    user-select: none;
+  }
+
   .empty-state { text-align: center; padding: 48px 24px; color: var(--text3); font-size: 13px; }
   .empty-state-icon { font-size: 30px; margin-bottom: 10px; }
 
@@ -518,9 +602,56 @@
 
   <!-- UPLOAD SECTION -->
   <div class="upload-section">
-    <!-- FBA File -->
+
+    <!-- FC Inventory — LEFT (Google Sheets link default) -->
+    <div class="upload-card" id="fc-card">
+      <span class="upload-label">01 — FC Inventory</span>
+      <div class="upload-title">Fulfillment Center File</div>
+      <div class="upload-sub">Sheet 1: Sellable · Sheet 2: Unsellable (date columns)</div>
+
+      <!-- Tab switcher — link is default -->
+      <div class="fc-tabs">
+        <div class="fc-tab active" id="fc-tab-link" onclick="switchFcTab('link')">🔗 Google Sheets Link</div>
+        <div class="fc-tab" id="fc-tab-file" onclick="switchFcTab('file')">📁 Upload File</div>
+      </div>
+
+      <!-- Panel: Google Sheets link (default) -->
+      <div class="fc-panel active" id="fc-panel-link">
+        <!-- Quick-copy preset link -->
+        <div class="quick-link-box">
+          <span class="quick-link-label">FC File</span>
+          <span class="quick-link-url" title="https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3">
+            docs.google.com/…/1jZv_Qqeg2RWXssYroxyS3
+          </span>
+          <button class="quick-link-copy" id="quick-copy-btn" onclick="copyQuickLink()">Copy</button>
+        </div>
+
+        <div class="link-input-wrap">
+          <span class="link-input-icon">🔗</span>
+          <input type="text" id="fc-link-input" placeholder="Paste Google Sheets URL here…"
+            oninput="handleLinkInput(this)" onpaste="setTimeout(()=>handleLinkInput(this),50)"/>
+        </div>
+        <div class="link-hint">
+          Sheet must be set to <strong>Share → Anyone with the link → Viewer</strong>.
+        </div>
+        <div class="link-status" id="fc-link-status"></div>
+      </div>
+
+      <!-- Panel: File upload -->
+      <div class="fc-panel" id="fc-panel-file">
+        <div class="upload-zone" id="fc-zone">
+          <input type="file" id="fc-file" accept=".xlsx,.xls" onchange="handleFileSelect('fc', this)"/>
+          <div class="upload-icon">🏭</div>
+          <div class="upload-zone-text">Drop file here or <strong>browse</strong></div>
+          <div class="upload-zone-ext">.XLSX · .XLS</div>
+        </div>
+        <div id="fc-badge" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- FBA Report — RIGHT -->
     <div class="upload-card" id="fba-card">
-      <span class="upload-label">01 — FBA Report</span>
+      <span class="upload-label">02 — FBA Report</span>
       <div class="upload-title">Amazon FBA Inventory</div>
       <div class="upload-sub">CSV or Excel · Columns: ASIN, SKU, Available, Unfulfillable</div>
       <div class="upload-zone" id="fba-zone">
@@ -532,43 +663,6 @@
       <div id="fba-badge" style="display:none"></div>
     </div>
 
-    <!-- FC File -->
-    <div class="upload-card" id="fc-card">
-      <span class="upload-label">02 — FC Inventory</span>
-      <div class="upload-title">Fulfillment Center File</div>
-      <div class="upload-sub">Sheet 1: Sellable · Sheet 2: Unsellable (date columns)</div>
-
-      <!-- Tab switcher -->
-      <div class="fc-tabs">
-        <div class="fc-tab active" id="fc-tab-file" onclick="switchFcTab('file')">📁 Upload File</div>
-        <div class="fc-tab" id="fc-tab-link" onclick="switchFcTab('link')">🔗 Google Sheets Link</div>
-      </div>
-
-      <!-- Panel: File upload -->
-      <div class="fc-panel active" id="fc-panel-file">
-        <div class="upload-zone" id="fc-zone">
-          <input type="file" id="fc-file" accept=".xlsx,.xls" onchange="handleFileSelect('fc', this)"/>
-          <div class="upload-icon">🏭</div>
-          <div class="upload-zone-text">Drop file here or <strong>browse</strong></div>
-          <div class="upload-zone-ext">.XLSX · .XLS</div>
-        </div>
-        <div id="fc-badge" style="display:none"></div>
-      </div>
-
-      <!-- Panel: Google Sheets link -->
-      <div class="fc-panel" id="fc-panel-link">
-        <div class="link-input-wrap">
-          <span class="link-input-icon">🔗</span>
-          <input type="text" id="fc-link-input" placeholder="Paste Google Sheets URL…"
-            oninput="handleLinkInput(this)" onpaste="setTimeout(()=>handleLinkInput(this),50)"/>
-        </div>
-        <div class="link-hint">
-          Paste any Google Sheets URL. The sheet must be set to<br>
-          <strong>Share → Anyone with the link → Viewer</strong>.
-        </div>
-        <div class="link-status" id="fc-link-status"></div>
-      </div>
-    </div>
   </div>
 
   <!-- ERRORS -->
@@ -598,27 +692,27 @@
       <div class="section-line"></div>
     </div>
     <div class="stat-cards">
-      <div class="stat-card">
+      <div class="stat-card" data-tip="Number of ASINs matched across both FBA and FC datasets">
         <span class="stat-icon">📦</span>
         <div class="stat-value" id="stat-skus">0</div>
         <div class="stat-label">Total SKUs</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" data-tip="FC Sellable + FBA Available across all matched SKUs">
         <span class="stat-icon">✅</span>
         <div class="stat-value" id="stat-sellable">0</div>
         <div class="stat-label">Total Sellable</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" data-tip="FC Unsellable + FBA Unfulfillable across all matched SKUs">
         <span class="stat-icon">⚠️</span>
         <div class="stat-value" id="stat-unsellable">0</div>
         <div class="stat-label">Total Unsellable</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" data-tip="Total FBA Available units — ready to ship to customers">
         <span class="stat-icon">🏪</span>
         <div class="stat-value" id="stat-fba">0</div>
         <div class="stat-label">FBA Available</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" data-tip="Total sellable units sitting at the Fulfillment Center">
         <span class="stat-icon">🏭</span>
         <div class="stat-value" id="stat-fc">0</div>
         <div class="stat-label">FC Sellable</div>
@@ -669,13 +763,13 @@
             <tr>
               <th>SKU</th>
               <th>ASIN</th>
-              <th class="num">FC Sellable</th>
-              <th class="num">FC Unsellable</th>
-              <th class="num">FBA Available</th>
-              <th class="num">FBA Unfulfillable</th>
-              <th class="num">Total Sellable</th>
-              <th class="num">Total Unsellable</th>
-              <th>Status</th>
+              <th class="num" data-tip="Units sellable at Fulfillment Center">FC Sellable</th>
+              <th class="num" data-tip="Damaged or unsellable units held at FC">FC Unsellable</th>
+              <th class="num" data-tip="Units available for purchase on Amazon FBA">FBA Available</th>
+              <th class="num" data-tip="Units held at FBA but not sellable (damaged, expired, etc.)">FBA Unfulfillable</th>
+              <th class="num" data-tip="FC Sellable + FBA Available combined">Total Sellable</th>
+              <th class="num" data-tip="FC Unsellable + FBA Unfulfillable combined">Total Unsellable</th>
+              <th data-tip="Stock health based on FBA availability. ⚠ Issue = unsellable exceeds sellable">Status</th>
             </tr>
           </thead>
           <tbody id="table-body"></tbody>
@@ -691,13 +785,17 @@
 
 </main>
 
+<footer class="page-footer">
+  Designed &amp; Developed by Helett · Inventory Intelligence Dashboard · All rights reserved
+</footer>
+
 <script>
 // ─── STATE ───────────────────────────────────────────────
 const state = {
   fbaFile: null,
   fcFile: null,
-  fcLink: null,       // Google Sheets URL when using link mode
-  fcMode: 'file',     // 'file' | 'link'
+  fcLink: null,
+  fcMode: 'link',     // link is default now
   data: [],
   filtered: [],
   charts: {}
@@ -766,6 +864,23 @@ function setLinkStatus(type, msg) {
   const el = document.getElementById('fc-link-status');
   el.className = 'link-status' + (type ? ' show ' + type : '');
   el.textContent = msg;
+}
+
+// Copy the preset FC file link into clipboard and into the input
+const FC_PRESET_LINK = 'https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3';
+function copyQuickLink() {
+  navigator.clipboard.writeText(FC_PRESET_LINK).then(() => {
+    const btn = document.getElementById('quick-copy-btn');
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    // Fallback: just fill the input
+  });
+  // Also auto-fill the input so user can hit Generate straight away
+  const input = document.getElementById('fc-link-input');
+  input.value = FC_PRESET_LINK;
+  handleLinkInput(input);
 }
 
 // Fetch Google Sheet as xlsx ArrayBuffer via the export URL
@@ -1342,13 +1457,13 @@ function renderTable() {
 
   tbody.innerHTML = rows.map(row => {
     const { base, issue } = getStatus(row);
-    let badgeClass, badgeLabel;
-    if (base === 'out')     { badgeClass = 'badge-red';    badgeLabel = 'Out of Stock'; }
-    else if (base === 'low') { badgeClass = 'badge-yellow'; badgeLabel = 'Low Stock'; }
-    else                    { badgeClass = 'badge-green';  badgeLabel = 'Healthy'; }
+    let badgeClass, badgeLabel, badgeTip;
+    if (base === 'out')      { badgeClass = 'badge-red';    badgeLabel = 'Out of Stock'; badgeTip = 'FBA Available = 0. No units ready to ship.'; }
+    else if (base === 'low') { badgeClass = 'badge-yellow'; badgeLabel = 'Low Stock';    badgeTip = 'FBA Available is under 50 units. Consider restocking soon.'; }
+    else                     { badgeClass = 'badge-green';  badgeLabel = 'Healthy';      badgeTip = 'FBA Available ≥ 50 units. Stock level is good.'; }
 
     const issueBadge = issue
-      ? `<span class="badge badge-issue" style="margin-left:4px">⚠ Issue</span>` : '';
+      ? `<span class="badge badge-issue" style="margin-left:4px" data-tip="Total unsellable units exceed total sellable — more bad stock than good. Investigate FC &amp; FBA returns.">⚠ Issue</span>` : '';
 
     return `<tr>
       <td class="sku-cell">${escHtml(row.sku)}</td>
@@ -1360,7 +1475,7 @@ function renderTable() {
       <td class="num">${fmt(row.total_sellable)}</td>
       <td class="num">${fmt(row.total_unsellable)}</td>
       <td>
-        <span class="badge ${badgeClass}"><span class="badge-dot"></span>${badgeLabel}</span>${issueBadge}
+        <span class="badge ${badgeClass}" data-tip="${badgeTip}"><span class="badge-dot"></span>${badgeLabel}</span>${issueBadge}
       </td>
     </tr>`;
   }).join('');
