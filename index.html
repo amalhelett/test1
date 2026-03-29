@@ -331,30 +331,21 @@
 
   /* ── TABLE ──────────────────────────────────── */
   .table-wrap {
-    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    overflow: hidden;
+    /* NO overflow here — any overflow:hidden/auto on an ancestor kills position:sticky */
   }
-   .table-scroll {
-  overflow-x: auto;
-  overflow-y: auto;
-  max-height: 600px;
-}
+  .table-scroll {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 600px;
+    border-radius: var(--radius);
+  }
 
-/* ADD THIS 👇 */
-thead {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-  thead th {
-  background: var(--surface2); /* IMPORTANT */
-}
   table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 
   thead th {
-    background: var(--surface2);
+    background: #1c2230;
     padding: 12px 16px;
     text-align: left;
     font-size: 11px;
@@ -362,14 +353,16 @@ thead {
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: var(--text2);
-    border-bottom: 1px solid var(--border);
     white-space: nowrap;
     user-select: none;
     position: sticky;
     top: 0;
-    z-index: 10;
-    box-shadow: 0 1px 0 var(--border);
+    z-index: 20;
+    box-shadow: 0 2px 0 #2a3344;
   }
+  /* Round the header corners to match the card */
+  thead th:first-child { border-radius: var(--radius) 0 0 0; }
+  thead th:last-child  { border-radius: 0 var(--radius) 0 0; }
   thead th.sortable { cursor: pointer; }
   thead th.sortable:hover { color: var(--text); }
   thead th.sorted { color: var(--yellow); }
@@ -422,6 +415,17 @@ thead {
   .badge-red .badge-dot    { background: #f87171; }
 
   .badge-issue  { background: rgba(245,124,66,0.15);  color: #fb923c; }
+
+  .badge-missing { background: rgba(168,85,247,0.15); color: #c084fc; }
+  tbody tr.fc-missing { background: rgba(168,85,247,0.04); }
+  tbody tr.fc-missing:hover { background: rgba(168,85,247,0.09); }
+  td.sku-missing {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #c084fc;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
 
   /* ── FC DUAL INPUT ──────────────────────────── */
   .fc-tabs {
@@ -603,7 +607,7 @@ thead {
 <body>
 
 <header class="header">
-  <div class="header-logo">Helett <span>Inventory Analyzer</span></div>
+  <div class="header-logo">Helett<span>Inventory Analyzer</span></div>
   <div class="header-tag">FBA + FC</div>
 </header>
 
@@ -629,8 +633,8 @@ thead {
         <!-- Quick-copy preset link -->
         <div class="quick-link-box">
           <span class="quick-link-label">FC File</span>
-          <span class="quick-link-url" title="Copuy File Link">
-            https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4/edit?usp=sharing
+          <span class="quick-link-url" title="https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3">
+            Copy this
           </span>
           <button class="quick-link-copy" id="quick-copy-btn" onclick="copyQuickLink()">Copy</button>
         </div>
@@ -680,7 +684,7 @@ thead {
   <!-- ACTION BAR -->
   <div class="action-bar">
     <button class="btn btn-primary" id="generate-btn" onclick="generateDashboard()" disabled>
-      ⚡ Generate Dashboard
+       Generate Dashboard
     </button>
     <button class="btn btn-ghost" id="reset-btn" onclick="resetAll()" style="display:none">
       ↺ Reset
@@ -795,7 +799,7 @@ thead {
 </main>
 
 <footer class="page-footer">
-  Designed &amp; Developed by Amal Helett · Inventory Intelligence Dashboard
+  Designed &amp; Developed by Amal · Inventory Intelligence Dashboard
 </footer>
 
 <script>
@@ -876,7 +880,7 @@ function setLinkStatus(type, msg) {
 }
 
 // Copy the preset FC file link into clipboard and into the input
-const FC_PRESET_LINK = 'https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4/edit?usp=sharing';
+const FC_PRESET_LINK = 'https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3';
 function copyQuickLink() {
   navigator.clipboard.writeText(FC_PRESET_LINK).then(() => {
     const btn = document.getElementById('quick-copy-btn');
@@ -1268,22 +1272,40 @@ async function parseFcBuffer(buf) {
 // ─── MERGE & JOIN ─────────────────────────────────────────
 function mergeData(fbaMap, sellableMap, unsellableMap) {
   const result = [];
+  const matchedAsins = new Set();
 
+  // Step 1: matched rows (ASIN in both FC and FBA)
   for (const [asin, fcSell] of sellableMap) {
-    if (!fbaMap.has(asin)) continue; // INNER JOIN — must exist in FBA
-
+    if (!fbaMap.has(asin)) continue;
+    matchedAsins.add(asin);
     const fba = fbaMap.get(asin);
     const fcUnsell = unsellableMap.get(asin) || 0;
-
     result.push({
-      sku:            fcSell.sku || fba.sku || asin,
+      sku:              fcSell.sku || fba.sku || asin,
       asin,
-      fc_sellable:    safeNum(fcSell.sellable),
-      fc_unsellable:  safeNum(fcUnsell),
-      fba_available:  safeNum(fba.available),
+      fc_sellable:      safeNum(fcSell.sellable),
+      fc_unsellable:    safeNum(fcUnsell),
+      fba_available:    safeNum(fba.available),
       fba_unfulfillable: safeNum(fba.unfulfillable),
-      total_sellable: safeNum(fcSell.sellable) + safeNum(fba.available),
-      total_unsellable: safeNum(fcUnsell) + safeNum(fba.unfulfillable)
+      total_sellable:   safeNum(fcSell.sellable) + safeNum(fba.available),
+      total_unsellable: safeNum(fcUnsell) + safeNum(fba.unfulfillable),
+      fc_missing:       false
+    });
+  }
+
+  // Step 2: FBA-only rows (ASIN in FBA but NOT in FC)
+  for (const [asin, fba] of fbaMap) {
+    if (matchedAsins.has(asin)) continue;
+    result.push({
+      sku:              '--',   // no FC SKU — show dash to flag it
+      asin,
+      fc_sellable:      0,
+      fc_unsellable:    0,
+      fba_available:    safeNum(fba.available),
+      fba_unfulfillable: safeNum(fba.unfulfillable),
+      total_sellable:   safeNum(fba.available),
+      total_unsellable: safeNum(fba.unfulfillable),
+      fc_missing:       true   // flag for special rendering
     });
   }
 
@@ -1467,12 +1489,30 @@ function renderTable() {
   tbody.innerHTML = rows.map(row => {
     const { base, issue } = getStatus(row);
     let badgeClass, badgeLabel, badgeTip;
-    if (base === 'out')      { badgeClass = 'badge-red';    badgeLabel = 'Out of Stock'; badgeTip = 'FBA 0.'; }
-    else if (base === 'low') { badgeClass = 'badge-yellow'; badgeLabel = 'Low Stock';    badgeTip = 'FBA under 50 units.'; }
-    else                     { badgeClass = 'badge-green';  badgeLabel = 'Healthy';      badgeTip = 'Stock level Good.'; }
+    if (base === 'out')      { badgeClass = 'badge-red';    badgeLabel = 'Out of Stock'; badgeTip = 'FBA Available = 0. No units ready to ship.'; }
+    else if (base === 'low') { badgeClass = 'badge-yellow'; badgeLabel = 'Low Stock';    badgeTip = 'FBA Available is under 50 units. Consider restocking soon.'; }
+    else                     { badgeClass = 'badge-green';  badgeLabel = 'Healthy';      badgeTip = 'FBA Available ≥ 50 units. Stock level is good.'; }
 
     const issueBadge = issue
-      ? `<span class="badge badge-issue" style="margin-left:4px" data-tip="Unsellable exceeds Sellable.">⚠ Issue</span>` : '';
+      ? `<span class="badge badge-issue" style="margin-left:4px" data-tip="Total unsellable units exceed total sellable — more bad stock than good. Investigate FC &amp; FBA returns.">⚠ Issue</span>` : '';
+
+    // FC-missing rows: purple row, dash SKU, "ASIN Update Needed" badge
+    if (row.fc_missing) {
+      return `<tr class="fc-missing">
+        <td class="sku-missing" data-tip="This ASIN exists in FBA but has no matching entry in the FC file. Update the FC sheet with this ASIN.">— ASIN not in FC</td>
+        <td class="asin-cell">${escHtml(row.asin)}</td>
+        <td class="num" style="color:var(--text3)">—</td>
+        <td class="num" style="color:var(--text3)">—</td>
+        <td class="num">${fmt(row.fba_available)}</td>
+        <td class="num">${fmt(row.fba_unfulfillable)}</td>
+        <td class="num">${fmt(row.total_sellable)}</td>
+        <td class="num">${fmt(row.total_unsellable)}</td>
+        <td>
+          <span class="badge ${badgeClass}" data-tip="${badgeTip}"><span class="badge-dot"></span>${badgeLabel}</span>
+          <span class="badge badge-missing" style="margin-left:4px" data-tip="This ASIN is missing from your FC inventory file. Add it to the FC sheet to enable full tracking.">⚠ ASIN Update Needed</span>
+        </td>
+      </tr>`;
+    }
 
     return `<tr>
       <td class="sku-cell">${escHtml(row.sku)}</td>
@@ -1494,7 +1534,7 @@ function renderTable() {
 function filterTable() {
   const q = norm(document.getElementById('search-input').value);
   state.filtered = q
-    ? state.data.filter(r => norm(r.sku).includes(q) || norm(r.asin).includes(q))
+    ? state.data.filter(r => norm(r.asin).includes(q) || (!r.fc_missing && norm(r.sku).includes(q)))
     : [...state.data];
   applyCurrentSort();
   renderTable();
