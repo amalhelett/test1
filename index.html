@@ -1,135 +1,847 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Inventory Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-body{font-family:Arial;background:#f5f7fb;margin:0}
-.header{padding:16px 24px;background:#fff;border-bottom:1px solid #ddd;font-weight:600}
-.container{padding:20px}
-.card{background:#fff;border:1px solid #ddd;border-radius:8px;padding:16px;margin-bottom:16px}
-.table-wrap{overflow:auto;max-height:70vh;border:1px solid #ddd;border-radius:8px}
-table{border-collapse:separate;border-spacing:0;width:100%}
-th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
-th{position:sticky;top:0;background:#fafafa;font-size:12px;text-transform:uppercase}
-.num{text-align:right}
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #f0efe9;
+    --border: #e2e0d8;
+    --border-dark: #c8c5ba;
+    --text: #1a1916;
+    --text-muted: #7a7870;
+    --text-dim: #b0ada4;
+    --accent: #1a1916;
+    --accent-green: #166534;
+    --accent-green-bg: #dcfce7;
+    --accent-orange: #d97706;
+    --accent-orange-bg: #fef3c7;
+    --accent-red: #991b1b;
+    --accent-red-bg: #fee2e2;
+    --accent-blue: #1d4ed8;
+    --accent-blue-bg: #dbeafe;
+    --stat-1: #1a1916;
+    --stat-2: #2d4a22;
+    --stat-3: #7c2d12;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--text);
+    color: #f5f4f0;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-logo {
+    width: 32px; height: 32px;
+    background: #f5f4f0;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .header-logo svg { width: 18px; height: 18px; }
+  .header h1 { font-size: 1rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+  .header-sub { font-size: 0.7rem; color: #a0a09a; font-family: 'JetBrains Mono', monospace; margin-top: 1px; }
+  .live-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: #a0a09a;
+  }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #4ade80;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ── MAIN ── */
+  .main { padding: 28px 32px; max-width: 1600px; margin: 0 auto; }
+
+  /* ── LOADING ── */
+  #loading {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: calc(100vh - 65px);
+    gap: 20px;
+  }
+  .loader-ring {
+    width: 48px; height: 48px;
+    border: 3px solid var(--border);
+    border-top-color: var(--text);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-text { font-size: 0.85rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* ── ERROR ── */
+  #error-box {
+    display: none;
+    background: var(--accent-red-bg);
+    border: 1px solid #fca5a5;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 32px auto;
+    max-width: 600px;
+    font-size: 0.85rem;
+    color: var(--accent-red);
+    font-family: 'JetBrains Mono', monospace;
+    white-space: pre-wrap;
+  }
+
+  /* ── DASHBOARD ── */
+  #dashboard { display: none; }
+
+  /* ── STATS ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .stat-card:nth-child(1)::before { background: #1a1916; }
+  .stat-card:nth-child(2)::before { background: #166534; }
+  .stat-card:nth-child(3)::before { background: #1d4ed8; }
+  .stat-card:nth-child(4)::before { background: #d97706; }
+
+  .stat-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .stat-card:nth-child(1) .stat-value { color: #1a1916; }
+  .stat-card:nth-child(2) .stat-value { color: #166534; }
+  .stat-card:nth-child(3) .stat-value { color: #1d4ed8; }
+  .stat-card:nth-child(4) .stat-value { color: #d97706; }
+  .stat-sub {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .toolbar-left { display: flex; align-items: center; gap: 10px; }
+  .section-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text);
+  }
+  .row-count {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+  .search-wrap { position: relative; }
+  .search-wrap input {
+    height: 34px;
+    padding: 0 12px 0 32px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text);
+    outline: none;
+    width: 220px;
+    transition: border-color 0.15s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input::placeholder { color: var(--text-dim); }
+  .search-icon {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    color: var(--text-dim); pointer-events: none;
+  }
+  .filter-btn {
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .filter-btn:hover { background: var(--surface2); }
+  .filter-btn.active { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+
+  /* ── TABLE WRAP ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .table-scroll {
+    overflow: auto;
+    max-height: calc(100vh - 320px);
+    min-height: 300px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  thead tr {
+    background: var(--text);
+  }
+  th {
+    padding: 11px 14px;
+    text-align: left;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #c8c5b8;
+    white-space: nowrap;
+    border-right: 1px solid rgba(255,255,255,0.07);
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+  }
+  th:last-child { border-right: none; }
+  th:hover { color: #f5f4f0; }
+  th .sort-icon { margin-left: 4px; opacity: 0.4; }
+  th.sorted .sort-icon { opacity: 1; color: #4ade80; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody tr.mismatch-row { background: #fffbeb; }
+  tbody tr.mismatch-row:hover { background: #fef3c7; }
+
+  td {
+    padding: 10px 14px;
+    color: var(--text);
+    white-space: nowrap;
+    border-right: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  td:last-child { border-right: none; }
+
+  .td-sku {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #334155;
+  }
+  .td-asin {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent-blue);
+    font-weight: 500;
+  }
+  .td-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    text-align: right;
+  }
+  .td-num.zero { color: var(--text-dim); }
+  .td-num.positive { color: #166534; }
+  .td-total {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    text-align: right;
+    background: #f0fdf4;
+    color: #14532d;
+  }
+  tbody tr.mismatch-row .td-total { background: #fefce8; color: #713f12; }
+
+  .badge-mismatch {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--accent-orange-bg);
+    color: var(--accent-orange);
+    border: 1px solid #fcd34d;
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .badge-ok {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--accent-green-bg);
+    color: var(--accent-green);
+    border: 1px solid #86efac;
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+  .badge-fc-only {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--accent-blue-bg);
+    color: var(--accent-blue);
+    border: 1px solid #93c5fd;
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 12px;
+    padding: 8px 14px;
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 56px 24px;
+    color: var(--text-muted);
+  }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .empty-state p { font-size: 0.85rem; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .main { padding: 16px; }
+    .header { padding: 14px 16px; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+  }
 </style>
 </head>
 <body>
-<div class="header">Inventory Dashboard (Auto)</div>
-<div class="container">
-<div class="card" id="summary"></div>
-<div class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>SKU</th>
-<th>ASIN</th>
-<th>FC Sellable</th>
-<th>FC Unsellable</th>
-<th>FBA Available</th>
-<th>FBA Unsellable</th>
-<th>Total Sellable</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody id="tbody"></tbody>
-</table>
-</div>
-</div>
+
+<header class="header">
+  <div class="header-left">
+    <div class="header-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#1a1916" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+      </svg>
+    </div>
+    <div>
+      <div class="header h1" style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#f5f4f0;">Inventory Dashboard</div>
+      <div class="header-sub" id="last-updated">Connecting to Google Sheets…</div>
+    </div>
+  </div>
+  <div class="live-badge"><div class="live-dot"></div><span id="live-status">Loading</span></div>
+</header>
+
+<main class="main">
+  <!-- Loading -->
+  <div id="loading">
+    <div class="loader-ring"></div>
+    <div class="loader-text">Fetching sheets data…</div>
+  </div>
+
+  <!-- Error -->
+  <div id="error-box"></div>
+
+  <!-- Dashboard -->
+  <div id="dashboard">
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Sellable Units</div>
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-sub">FC Sellable + FBA Available</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total SKUs</div>
+        <div class="stat-value" id="stat-skus">—</div>
+        <div class="stat-sub">Unique ASINs tracked</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">FBA Only</div>
+        <div class="stat-value" id="stat-fba-only">—</div>
+        <div class="stat-sub">In FBA, not found in FC</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">ASIN Mismatches</div>
+        <div class="stat-value" id="stat-mismatch">—</div>
+        <div class="stat-sub">FC missing / unmatched</div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <span class="section-title">Inventory</span>
+        <span class="row-count" id="row-count">0 rows</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div class="search-wrap">
+          <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="search-input" placeholder="Search SKU or ASIN…" oninput="applyFilters()" />
+        </div>
+        <button class="filter-btn" id="btn-mismatch" onclick="toggleMismatchFilter()">⚠ Mismatches only</button>
+        <button class="filter-btn" id="btn-fc-only" onclick="toggleFCFilter()">FC-Only</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortBy('sku')">SKU <span class="sort-icon" data-col="sku">↕</span></th>
+              <th onclick="sortBy('asin')">ASIN <span class="sort-icon" data-col="asin">↕</span></th>
+              <th onclick="sortBy('fc_sellable')" style="text-align:right">FC Sellable <span class="sort-icon" data-col="fc_sellable">↕</span></th>
+              <th onclick="sortBy('fc_unsellable')" style="text-align:right">FC Unsellable <span class="sort-icon" data-col="fc_unsellable">↕</span></th>
+              <th onclick="sortBy('fba_available')" style="text-align:right">FBA Available <span class="sort-icon" data-col="fba_available">↕</span></th>
+              <th onclick="sortBy('fba_unsellable')" style="text-align:right">FBA Unsellable <span class="sort-icon" data-col="fba_unsellable">↕</span></th>
+              <th onclick="sortBy('total')" style="text-align:right">Total <span class="sort-icon" data-col="total">↕</span></th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+      <div class="footer">
+        <span id="footer-count">—</span>
+        <span id="footer-time">—</span>
+      </div>
+    </div>
+  </div>
+</main>
 
 <script>
-const SHEET_LINK = "https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4/export?format=xlsx";
+// ══════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4/export?format=xlsx&id=1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4";
+const SHEET_SELLABLE    = "Sellable inventory";
+const SHEET_UNSELLABLE  = "Unsellable";
+const SHEET_FBA         = "FBA_Inventory";
 
-async function loadData(){
-  const res = await fetch(SHEET_LINK);
-  const buf = await res.arrayBuffer();
-  const wb = XLSX.read(buf,{type:'array'});
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let allRows = [];
+let filteredRows = [];
+let sortCol = null;
+let sortDir = 1;
+let filterMismatch = false;
+let filterFCOnly = false;
 
-  const fcSell = XLSX.utils.sheet_to_json(wb.Sheets["Sellable inventory"],{defval:''});
-  const fcUnsell = XLSX.utils.sheet_to_json(wb.Sheets["Unsellable"],{defval:''});
-  const fba = XLSX.utils.sheet_to_json(wb.Sheets["FBA_Inventory"],{defval:''});
-
-  const fcMap = new Map();
-  fcSell.forEach(r=>{
-    fcMap.set(r.asin||r.ASIN,{
-      sku:r.sku||r.SKU,
-      sell: Number(r.sellable||r.quantity||0)
-    })
-  })
-
-  const unsellMap = new Map();
-  fcUnsell.forEach(r=>{
-    unsellMap.set(r.asin||r.ASIN, Number(r[Object.keys(r).slice(-1)[0]]||0))
-  })
-
-  const data=[];
-
-  const usedAsins = new Set();
-
-  fba.forEach(r=>{
-    const asin=r.asin||r.ASIN;
-    if(!asin) return;
-
-    usedAsins.add(asin);
-
-    const fc=fcMap.get(asin)||{sell:0,sku:"--"};
-    const unsell=unsellMap.get(asin)||0;
-
-    const fbaAvail=Number(r.available||r["afn-fulfillable-quantity"]||0);
-    const fbaUnsell=Number(r.unfulfillable||r["afn-unsellable-quantity"]||0);
-
-    data.push({
-      sku:fc.sku,
-      asin,
-      fcSell:fc.sell,
-      fcUnsell:unsell,
-      fbaAvail,
-      fbaUnsell,
-      total:fc.sell+fbaAvail,
-      missing: !fcMap.has(asin)
-    })
-  })
-
-  fcMap.forEach((val, asin)=>{
-    if(usedAsins.has(asin)) return;
-
-    data.push({
-      sku:val.sku,
-      asin,
-      fcSell:val.sell,
-      fcUnsell:unsellMap.get(asin)||0,
-      fbaAvail:0,
-      fbaUnsell:0,
-      total:val.sell,
-      missing:false
-    })
-  })
-  })
-
-  render(data)
+// ══════════════════════════════════════════════════════
+// FETCH & PARSE
+// ══════════════════════════════════════════════════════
+async function fetchData() {
+  const res = await fetch(SHEET_URL);
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  const ab = await res.arrayBuffer();
+  return ab;
 }
 
-function render(data){
-  const tbody=document.getElementById("tbody");
-  tbody.innerHTML=data.map(r=>`<tr>
-<td>${r.sku}</td>
-<td>${r.asin}</td>
-<td class="num">${r.fcSell}</td>
-<td class="num">${r.fcUnsell}</td>
-<td class="num">${r.fbaAvail}</td>
-<td class="num">${r.fbaUnsell}</td>
-<td class="num">${r.total}</td>
-<td>${r.missing ? '<span style="color:#d97706;font-weight:600">⚠ Missing in FC</span>' : ''}</td>
-</tr>`).join("")
+function parseSheets(ab) {
+  const wb = XLSX.read(ab, { type: "array", cellDates: true });
 
-  const totalSell=data.reduce((a,b)=>a+b.total,0)
-  document.getElementById("summary").innerHTML=`Total Units: <b>${totalSell}</b> | SKUs: <b>${data.length}</b>`
+  const sellableSheet = findSheet(wb, SHEET_SELLABLE);
+  const unsellableSheet = findSheet(wb, SHEET_UNSELLABLE);
+  const fbaSheet = findSheet(wb, SHEET_FBA);
+
+  if (!sellableSheet) throw new Error(`Sheet "${SHEET_SELLABLE}" not found.\nAvailable: ${wb.SheetNames.join(', ')}`);
+  if (!unsellableSheet) throw new Error(`Sheet "${SHEET_UNSELLABLE}" not found.\nAvailable: ${wb.SheetNames.join(', ')}`);
+  if (!fbaSheet) throw new Error(`Sheet "${SHEET_FBA}" not found.\nAvailable: ${wb.SheetNames.join(', ')}`);
+
+  const sellable   = sheetToObjects(wb.Sheets[sellableSheet]);
+  const unsellable = sheetToObjects(wb.Sheets[unsellableSheet]);
+  const fba        = sheetToObjects(wb.Sheets[fbaSheet]);
+
+  return { sellable, unsellable, fba };
 }
 
-loadData();
+function findSheet(wb, name) {
+  const lower = name.toLowerCase();
+  return wb.SheetNames.find(s => s.toLowerCase() === lower) ||
+         wb.SheetNames.find(s => s.toLowerCase().includes(lower.split(' ')[0])) ||
+         null;
+}
+
+function sheetToObjects(ws) {
+  const raw = XLSX.utils.sheet_to_json(ws, { defval: "" });
+  return raw.filter(r => Object.values(r).some(v => v !== ""));
+}
+
+// ══════════════════════════════════════════════════════
+// COLUMN DETECTION
+// ══════════════════════════════════════════════════════
+function detectCol(headers, patterns) {
+  const lower = headers.map(h => String(h).toLowerCase());
+  for (const pat of patterns) {
+    const idx = lower.findIndex(h => h.includes(pat));
+    if (idx !== -1) return headers[idx];
+  }
+  return null;
+}
+
+function extractColumns(rows, config) {
+  if (!rows.length) return { colMap: {}, rows };
+  const headers = Object.keys(rows[0]);
+  const colMap = {};
+  for (const [key, patterns] of Object.entries(config)) {
+    colMap[key] = detectCol(headers, patterns);
+  }
+  return { colMap, rows };
+}
+
+// ══════════════════════════════════════════════════════
+// MERGE
+// ══════════════════════════════════════════════════════
+function mergeData(sellableRows, unsellableRows, fbaRows) {
+  // ── Detect columns in each sheet ──────────────────
+  const { colMap: fcSellCols } = extractColumns(sellableRows, {
+    asin: ["asin"],
+    sku:  ["sku", "msku", "seller sku", "seller-sku"],
+    qty:  ["sellable", "stock", "qty", "quantity", "available"],
+  });
+
+  const { colMap: fcUnCols } = extractColumns(unsellableRows, {
+    asin: ["asin"],
+    sku:  ["sku", "msku", "seller sku", "seller-sku"],
+  });
+
+  const { colMap: fbaCols } = extractColumns(fbaRows, {
+    asin:          ["asin"],
+    sku:           ["sku", "msku", "seller sku", "seller-sku"],
+    fba_available: ["afn-fulfillable", "fulfillable", "available"],
+    fba_unsellable:["afn-unsellable", "unsellable", "unfulfillable"],
+  });
+
+  // ── Build FC Sellable map: ASIN → qty ─────────────
+  const fcSellMap = new Map();
+  const fcSellSkuMap = new Map();
+  for (const row of sellableRows) {
+    const asin = norm(row[fcSellCols.asin]);
+    if (!asin) continue;
+    const qty = toNum(row[fcSellCols.qty]);
+    const sku  = str(row[fcSellCols.sku]);
+    fcSellMap.set(asin, (fcSellMap.get(asin) || 0) + qty);
+    if (sku && !fcSellSkuMap.has(asin)) fcSellSkuMap.set(asin, sku);
+  }
+
+  // ── Build FC Unsellable map: ASIN → latest date col value ──
+  // Detect date columns = all columns except ASIN and SKU cols
+  const fcUnHeaders = unsellableRows.length ? Object.keys(unsellableRows[0]) : [];
+  const skipCols = new Set([fcUnCols.asin, fcUnCols.sku].filter(Boolean));
+  const dateCols = fcUnHeaders.filter(h => !skipCols.has(h));
+  const lastDateCol = dateCols.length ? dateCols[dateCols.length - 1] : null;
+
+  const fcUnMap = new Map();
+  for (const row of unsellableRows) {
+    const asin = norm(row[fcUnCols.asin]);
+    if (!asin) continue;
+    const qty = lastDateCol ? toNum(row[lastDateCol]) : 0;
+    fcUnMap.set(asin, (fcUnMap.get(asin) || 0) + qty);
+  }
+
+  // ── Build FBA map and base rows ─────────────────────
+  const merged = [];
+  const fbaAsins = new Set();
+
+  for (const row of fbaRows) {
+    const asin = norm(row[fbaCols.asin]);
+    if (!asin) continue;
+    fbaAsins.add(asin);
+
+    const sku          = str(row[fbaCols.sku]) || "--";
+    const fbaAvail     = toNum(row[fbaCols.fba_available]);
+    const fbaUnsell    = toNum(row[fbaCols.fba_unsellable]);
+
+    const fcSell   = fcSellMap.get(asin) ?? null;
+    const fcUnsell = fcUnMap.get(asin)   ?? null;
+
+    const hasFCMatch = fcSellMap.has(asin) || fcUnMap.has(asin);
+
+    merged.push({
+      sku,
+      asin,
+      fc_sellable:   hasFCMatch ? (fcSell   ?? 0) : 0,
+      fc_unsellable: hasFCMatch ? (fcUnsell ?? 0) : 0,
+      fba_available:  fbaAvail,
+      fba_unsellable: fbaUnsell,
+      total: (hasFCMatch ? (fcSell ?? 0) : 0) + fbaAvail,
+      status: hasFCMatch ? "ok" : "mismatch",
+      source: "fba",
+    });
+  }
+
+  // ── FC-Only rows (in FC but not in FBA) ─────────────
+  const allFCAsins = new Set([...fcSellMap.keys(), ...fcUnMap.keys()]);
+  for (const asin of allFCAsins) {
+    if (fbaAsins.has(asin)) continue;
+    const fcSell   = fcSellMap.get(asin)   ?? 0;
+    const fcUnsell = fcUnMap.get(asin)     ?? 0;
+    const sku      = fcSellSkuMap.get(asin) || "--";
+    merged.push({
+      sku,
+      asin,
+      fc_sellable:   fcSell,
+      fc_unsellable: fcUnsell,
+      fba_available:  0,
+      fba_unsellable: 0,
+      total: fcSell,
+      status: "fc_only",
+      source: "fc",
+    });
+  }
+
+  return merged;
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER SUMMARY
+// ══════════════════════════════════════════════════════
+function renderSummary(rows) {
+  const totalUnits  = rows.reduce((s, r) => s + r.total, 0);
+  const totalSKUs   = rows.length;
+  const fbaOnly     = rows.filter(r => r.status === "mismatch").length;
+  const mismatch    = rows.filter(r => r.status === "mismatch" || r.status === "fc_only").length;
+
+  setText("stat-total",    totalUnits.toLocaleString());
+  setText("stat-skus",     totalSKUs.toLocaleString());
+  setText("stat-fba-only", fbaOnly.toLocaleString());
+  setText("stat-mismatch", (rows.filter(r=>r.status==="mismatch").length).toLocaleString());
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER TABLE
+// ══════════════════════════════════════════════════════
+function renderTable(rows) {
+  const tbody = document.getElementById("table-body");
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">📦</div><p>No rows match the current filter.</p></div></td></tr>`;
+    setText("row-count", "0 rows");
+    setText("footer-count", "No rows displayed");
+    return;
+  }
+
+  const html = rows.map(r => {
+    const isMismatch = r.status === "mismatch";
+    const isFCOnly   = r.status === "fc_only";
+
+    const badge = isMismatch
+      ? `<span class="badge-mismatch">⚠ ASIN Mismatch</span>`
+      : isFCOnly
+        ? `<span class="badge-fc-only">◈ FC Only</span>`
+        : `<span class="badge-ok">✓ Matched</span>`;
+
+    return `
+<tr class="${isMismatch ? 'mismatch-row' : ''}">
+  <td class="td-sku" title="${esc(r.sku)}">${esc(r.sku)}</td>
+  <td class="td-asin">${esc(r.asin)}</td>
+  <td class="td-num ${r.fc_sellable   === 0 ? 'zero' : 'positive'}">${r.fc_sellable.toLocaleString()}</td>
+  <td class="td-num ${r.fc_unsellable === 0 ? 'zero' : ''}">${r.fc_unsellable.toLocaleString()}</td>
+  <td class="td-num ${r.fba_available  === 0 ? 'zero' : 'positive'}">${r.fba_available.toLocaleString()}</td>
+  <td class="td-num ${r.fba_unsellable === 0 ? 'zero' : ''}">${r.fba_unsellable.toLocaleString()}</td>
+  <td class="td-num td-total">${r.total.toLocaleString()}</td>
+  <td>${badge}</td>
+</tr>`;
+  }).join("");
+
+  tbody.innerHTML = html;
+  setText("row-count",    `${rows.length.toLocaleString()} row${rows.length !== 1 ? 's' : ''}`);
+  setText("footer-count", `Showing ${rows.length.toLocaleString()} of ${allRows.length.toLocaleString()} rows`);
+}
+
+// ══════════════════════════════════════════════════════
+// FILTERS & SORT
+// ══════════════════════════════════════════════════════
+function applyFilters() {
+  const q = document.getElementById("search-input").value.trim().toLowerCase();
+  let rows = [...allRows];
+
+  if (filterMismatch) rows = rows.filter(r => r.status === "mismatch");
+  if (filterFCOnly)   rows = rows.filter(r => r.status === "fc_only");
+
+  if (q) {
+    rows = rows.filter(r =>
+      r.sku.toLowerCase().includes(q) ||
+      r.asin.toLowerCase().includes(q)
+    );
+  }
+
+  if (sortCol) {
+    rows.sort((a, b) => {
+      const av = a[sortCol], bv = b[sortCol];
+      if (typeof av === "number") return (av - bv) * sortDir;
+      return String(av).localeCompare(String(bv)) * sortDir;
+    });
+  }
+
+  filteredRows = rows;
+  renderTable(rows);
+}
+
+function sortBy(col) {
+  if (sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = -1; }
+
+  document.querySelectorAll("th").forEach(th => th.classList.remove("sorted"));
+  document.querySelectorAll(".sort-icon").forEach(s => {
+    s.textContent = "↕";
+    s.style.color = "";
+  });
+  const icon = document.querySelector(`.sort-icon[data-col="${col}"]`);
+  if (icon) {
+    icon.textContent = sortDir === 1 ? "↑" : "↓";
+    icon.closest("th").classList.add("sorted");
+  }
+  applyFilters();
+}
+
+function toggleMismatchFilter() {
+  filterMismatch = !filterMismatch;
+  filterFCOnly = false;
+  document.getElementById("btn-mismatch").classList.toggle("active", filterMismatch);
+  document.getElementById("btn-fc-only").classList.remove("active");
+  applyFilters();
+}
+function toggleFCFilter() {
+  filterFCOnly = !filterFCOnly;
+  filterMismatch = false;
+  document.getElementById("btn-fc-only").classList.toggle("active", filterFCOnly);
+  document.getElementById("btn-mismatch").classList.remove("active");
+  applyFilters();
+}
+
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
+function norm(v)  { return String(v ?? "").trim().toUpperCase(); }
+function str(v)   { return String(v ?? "").trim(); }
+function toNum(v) {
+  if (v === "" || v === null || v === undefined) return 0;
+  const n = parseFloat(String(v).replace(/,/g, ""));
+  return isNaN(n) ? 0 : Math.round(n);
+}
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// ══════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════
+async function boot() {
+  const t0 = performance.now();
+  try {
+    const ab = await fetchData();
+    const { sellable, unsellable, fba } = parseSheets(ab);
+    allRows = mergeData(sellable, unsellable, fba);
+
+    renderSummary(allRows);
+    applyFilters();
+
+    document.getElementById("loading").style.display   = "none";
+    document.getElementById("dashboard").style.display = "block";
+
+    const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+    const now = new Date().toLocaleString();
+    setText("last-updated",  `Last synced: ${now}`);
+    setText("live-status",   "Live");
+    setText("footer-time",   `Loaded in ${elapsed}s · ${allRows.length} total rows`);
+    document.querySelector(".live-dot").style.background = "#4ade80";
+
+  } catch (err) {
+    document.getElementById("loading").style.display = "none";
+    const box = document.getElementById("error-box");
+    box.style.display = "block";
+    box.textContent = `❌ Failed to load dashboard\n\n${err.message}\n\nNote: The Google Sheet must be publicly accessible (File → Share → Anyone with the link can view).`;
+    setText("live-status", "Error");
+    document.querySelector(".live-dot").style.background = "#f87171";
+    setText("last-updated", "Failed to sync");
+  }
+}
+
+boot();
 </script>
 </body>
 </html>
