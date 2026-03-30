@@ -1,843 +1,705 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Inventory Dashboard</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Inventory Intelligence</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
-  :root {
-    --bg: #f5f4f0;
-    --surface: #ffffff;
-    --surface2: #f0efe9;
-    --border: #e2e0d8;
-    --border-dark: #c8c5ba;
-    --text: #1a1916;
-    --text-muted: #7a7870;
-    --text-dim: #b0ada4;
-    --accent: #1a1916;
-    --accent-green: #166534;
-    --accent-green-bg: #dcfce7;
-    --accent-orange: #d97706;
-    --accent-orange-bg: #fef3c7;
-    --accent-red: #991b1b;
-    --accent-red-bg: #fee2e2;
-    --accent-blue: #1d4ed8;
-    --accent-blue-bg: #dbeafe;
-    --stat-1: #1a1916;
-    --stat-2: #2d4a22;
-    --stat-3: #7c2d12;
-    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
-  }
+:root {
+  --bg:         #0f1117;
+  --bg2:        #161820;
+  --bg3:        #1c1f2b;
+  --card:       #1e2130;
+  --card2:      #242840;
+  --border:     #2a2d3e;
+  --border2:    #353858;
+  --text:       #e8eaf6;
+  --text2:      #9395a5;
+  --text3:      #5f6170;
+  --accent:     #6366f1;
+  --accent2:    #818cf8;
+  --green:      #22c55e;
+  --green-dim:  #166534;
+  --orange:     #f59e0b;
+  --red:        #ef4444;
+  --blue:       #38bdf8;
+  --purple:     #a78bfa;
+}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-  body {
-    font-family: 'Syne', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    line-height: 1.5;
-  }
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;}
 
-  /* ── HEADER ── */
-  .header {
-    background: var(--text);
-    color: #f5f4f0;
-    padding: 18px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .header-left { display: flex; align-items: center; gap: 14px; }
-  .header-logo {
-    width: 32px; height: 32px;
-    background: #f5f4f0;
-    border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .header-logo svg { width: 18px; height: 18px; }
-  .header h1 { font-size: 1rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
-  .header-sub { font-size: 0.7rem; color: #a0a09a; font-family: 'JetBrains Mono', monospace; margin-top: 1px; }
-  .live-badge {
-    display: flex; align-items: center; gap: 6px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 0.7rem;
-    font-family: 'JetBrains Mono', monospace;
-    color: #a0a09a;
-  }
-  .live-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: #4ade80;
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
+/* HEADER */
+.hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+.hdr-brand{display:flex;align-items:center;gap:12px;}
+.hdr-icon{width:34px;height:34px;background:linear-gradient(135deg,#6366f1,#818cf8);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hdr-title{font-size:0.9rem;font-weight:700;color:var(--text);}
+.hdr-sub{font-size:0.67rem;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:1px;}
+.sync-pill{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px 4px 8px;font-size:0.7rem;font-family:'IBM Plex Mono',monospace;color:var(--text2);}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--text3);transition:background .3s;}
+.sdot.live{background:var(--green);animation:blink 2s infinite;}
+.sdot.err{background:var(--red);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  /* ── MAIN ── */
-  .main { padding: 28px 32px; max-width: 1600px; margin: 0 auto; }
+/* LOADING */
+#scr-load{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 58px);gap:18px;}
+.spinner{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+.load-msg{font-size:.82rem;color:var(--text2);font-family:'IBM Plex Mono',monospace;}
+.load-step{font-size:.72rem;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:4px;}
 
-  /* ── LOADING ── */
-  #loading {
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    min-height: calc(100vh - 65px);
-    gap: 20px;
-  }
-  .loader-ring {
-    width: 48px; height: 48px;
-    border: 3px solid var(--border);
-    border-top-color: var(--text);
-    border-radius: 50%;
-    animation: spin 0.9s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loader-text { font-size: 0.85rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+/* ERROR */
+#scr-err{display:none;max-width:640px;margin:60px auto;background:#1c0505;border:1px solid #7f1d1d;border-radius:12px;padding:24px;}
+.err-t{font-weight:700;color:var(--red);margin-bottom:8px;}
+.err-b{font-family:'IBM Plex Mono',monospace;font-size:.73rem;color:#fca5a5;white-space:pre-wrap;line-height:1.7;}
 
-  /* ── ERROR ── */
-  #error-box {
-    display: none;
-    background: var(--accent-red-bg);
-    border: 1px solid #fca5a5;
-    border-radius: 10px;
-    padding: 20px 24px;
-    margin: 32px auto;
-    max-width: 600px;
-    font-size: 0.85rem;
-    color: var(--accent-red);
-    font-family: 'JetBrains Mono', monospace;
-    white-space: pre-wrap;
-  }
+/* DASHBOARD */
+#scr-dash{display:none;}
+.main{padding:24px 28px;max-width:1600px;margin:0 auto;}
 
-  /* ── DASHBOARD ── */
-  #dashboard { display: none; }
+/* DEBUG */
+#dbg{display:none;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-family:'IBM Plex Mono',monospace;font-size:.69rem;color:var(--text2);white-space:pre-wrap;line-height:1.7;}
 
-  /* ── STATS ── */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 14px;
-    margin-bottom: 28px;
-  }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px 22px;
-    box-shadow: var(--shadow);
-    position: relative;
-    overflow: hidden;
-  }
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-  }
-  .stat-card:nth-child(1)::before { background: #1a1916; }
-  .stat-card:nth-child(2)::before { background: #166534; }
-  .stat-card:nth-child(3)::before { background: #1d4ed8; }
-  .stat-card:nth-child(4)::before { background: #d97706; }
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:14px;margin-bottom:22px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s;}
+.kpi:hover{border-color:var(--border2);}
+.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;}
+.kpi.ci::after{background:linear-gradient(90deg,#6366f1,#818cf8);}
+.kpi.cg::after{background:linear-gradient(90deg,#22c55e,#4ade80);}
+.kpi.cb::after{background:linear-gradient(90deg,#38bdf8,#7dd3fc);}
+.kpi.co::after{background:linear-gradient(90deg,#f59e0b,#fbbf24);}
+.kpi.cp::after{background:linear-gradient(90deg,#a78bfa,#c4b5fd);}
+.kpi.cr::after{background:linear-gradient(90deg,#ef4444,#f87171);}
+.kpi-lbl{font-size:.63rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin-bottom:10px;}
+.kpi-val{font-size:1.75rem;font-weight:800;line-height:1;letter-spacing:-.02em;}
+.kpi.ci .kpi-val{color:#818cf8;}.kpi.cg .kpi-val{color:#4ade80;}.kpi.cb .kpi-val{color:#7dd3fc;}
+.kpi.co .kpi-val{color:#fbbf24;}.kpi.cp .kpi-val{color:#c4b5fd;}.kpi.cr .kpi-val{color:#f87171;}
+.kpi-sub{font-size:.67rem;color:var(--text3);margin-top:6px;font-family:'IBM Plex Mono',monospace;}
 
-  .stat-label {
-    font-size: 0.68rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-  }
-  .stat-value {
-    font-size: 2rem;
-    font-weight: 800;
-    line-height: 1;
-    letter-spacing: -0.02em;
-  }
-  .stat-card:nth-child(1) .stat-value { color: #1a1916; }
-  .stat-card:nth-child(2) .stat-value { color: #166534; }
-  .stat-card:nth-child(3) .stat-value { color: #1d4ed8; }
-  .stat-card:nth-child(4) .stat-value { color: #d97706; }
-  .stat-sub {
-    font-size: 0.7rem;
-    color: var(--text-dim);
-    margin-top: 6px;
-    font-family: 'JetBrains Mono', monospace;
-  }
+/* CHARTS ROW */
+.charts-row{display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:22px;}
+@media(max-width:900px){.charts-row{grid-template-columns:1fr;}}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;}
+.chart-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+.chart-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);}
+.bar-legend{display:flex;gap:12px;}
+.bl-item{display:flex;align-items:center;gap:5px;font-size:.67rem;color:var(--text3);}
+.bl-dot{width:8px;height:8px;border-radius:2px;}
+.bar-wrap{height:230px;}
+.donut-outer{display:flex;flex-direction:column;align-items:center;}
+.donut-ring{position:relative;width:170px;height:170px;display:flex;align-items:center;justify-content:center;}
+.donut-ring canvas{position:absolute;top:0;left:0;}
+.donut-ctr{text-align:center;pointer-events:none;position:relative;z-index:1;}
+.dc-val{font-size:1.5rem;font-weight:800;color:var(--text);}
+.dc-lbl{font-size:.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;}
+.dl{display:flex;gap:16px;margin-top:14px;justify-content:center;flex-wrap:wrap;}
+.dl-item{display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--text2);}
+.dl-sw{width:10px;height:10px;border-radius:3px;}
 
-  /* ── TOOLBAR ── */
-  .toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .toolbar-left { display: flex; align-items: center; gap: 10px; }
-  .section-title {
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text);
-  }
-  .row-count {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    font-family: 'JetBrains Mono', monospace;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    padding: 2px 8px;
-    border-radius: 20px;
-  }
-  .search-wrap { position: relative; }
-  .search-wrap input {
-    height: 34px;
-    padding: 0 12px 0 32px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--surface);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem;
-    color: var(--text);
-    outline: none;
-    width: 220px;
-    transition: border-color 0.15s;
-  }
-  .search-wrap input:focus { border-color: var(--accent); }
-  .search-wrap input::placeholder { color: var(--text-dim); }
-  .search-icon {
-    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-    color: var(--text-dim); pointer-events: none;
-  }
-  .filter-btn {
-    height: 34px;
-    padding: 0 14px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--surface);
-    font-family: 'Syne', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex; align-items: center; gap: 5px;
-  }
-  .filter-btn:hover { background: var(--surface2); }
-  .filter-btn.active { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+/* TABLE SECTION */
+.tbl-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;}
+.sec-title{font-size:.77rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);}
+.tbl-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.srch{position:relative;display:flex;align-items:center;}
+.srch svg{position:absolute;left:9px;color:var(--text3);pointer-events:none;flex-shrink:0;}
+.srch input{height:32px;padding:0 12px 0 29px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:.73rem;color:var(--text);outline:none;width:195px;transition:border-color .15s,width .2s;}
+.srch input::placeholder{color:var(--text3);}
+.srch input:focus{border-color:var(--accent);width:230px;}
+.chips{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{height:30px;padding:0 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:.69rem;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.chip:hover{border-color:var(--border2);color:var(--text);}
+.chip.r{background:#1c0505;border-color:var(--red);color:var(--red);}
+.chip.o{background:#1c1205;border-color:var(--orange);color:var(--orange);}
+.chip.p{background:rgba(167,139,250,.1);border-color:var(--purple);color:var(--purple);}
+.chip.b{background:#041c2e;border-color:var(--blue);color:var(--blue);}
+.rbadge{height:30px;padding:0 10px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;font-family:'IBM Plex Mono',monospace;font-size:.69rem;color:var(--text3);display:flex;align-items:center;}
 
-  /* ── TABLE WRAP ── */
-  .table-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    overflow: hidden;
-  }
-  .table-scroll {
-    overflow: auto;
-    max-height: calc(100vh - 320px);
-    min-height: 300px;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.8rem;
-  }
-  thead {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-  thead tr {
-    background: var(--text);
-  }
-  th {
-    padding: 11px 14px;
-    text-align: left;
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #c8c5b8;
-    white-space: nowrap;
-    border-right: 1px solid rgba(255,255,255,0.07);
-    cursor: pointer;
-    user-select: none;
-    transition: color 0.15s;
-  }
-  th:last-child { border-right: none; }
-  th:hover { color: #f5f4f0; }
-  th .sort-icon { margin-left: 4px; opacity: 0.4; }
-  th.sorted .sort-icon { opacity: 1; color: #4ade80; }
+/* TABLE */
+.tbl-outer{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.tbl-scroll{overflow:auto;max-height:420px;min-height:220px;}
+table{width:100%;border-collapse:collapse;font-size:.77rem;}
+thead{position:sticky;top:0;z-index:20;}
+thead tr{background:var(--bg2);border-bottom:1px solid var(--border2);}
+th{padding:10px 14px;text-align:left;font-size:.61rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);white-space:nowrap;cursor:pointer;user-select:none;transition:color .15s;border-right:1px solid var(--border);}
+th:last-child{border-right:none;}
+th:hover{color:var(--text2);}
+th.srt{color:var(--accent2);}
+.thi{display:flex;align-items:center;gap:5px;}
+.sarr{opacity:.3;font-size:.63rem;}
+th.srt .sarr{opacity:1;color:var(--accent2);}
+th.nc{text-align:right;}
+th.nc .thi{justify-content:flex-end;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--card2);}
+td{padding:9px 14px;border-right:1px solid var(--border);vertical-align:middle;white-space:nowrap;}
+td:last-child{border-right:none;}
+.td-sku{font-family:'IBM Plex Mono',monospace;font-size:.71rem;font-weight:500;color:var(--text2);max-width:155px;overflow:hidden;text-overflow:ellipsis;}
+.td-asin{font-family:'IBM Plex Mono',monospace;font-size:.71rem;font-weight:500;color:var(--blue);letter-spacing:.02em;}
+.n{font-family:'IBM Plex Mono',monospace;font-weight:500;text-align:right;}
+.n.z{color:var(--text3);}
+.n.g{color:var(--green);}
+.n.w{color:var(--orange);}
+.ntot{font-family:'IBM Plex Mono',monospace;font-weight:700;text-align:right;color:#4ade80;background:rgba(34,197,94,.05);}
+.ntot.low{color:var(--orange);background:rgba(245,158,11,.06);}
+.td-st{min-width:80px;}
 
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background 0.1s;
-  }
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: var(--surface2); }
-  tbody tr.mismatch-row { background: #fffbeb; }
-  tbody tr.mismatch-row:hover { background: #fef3c7; }
+/* BADGES + TOOLTIPS */
+.iw{display:flex;gap:4px;flex-wrap:wrap;}
+.ibadge{display:inline-flex;align-items:center;gap:3px;border-radius:5px;padding:2px 7px;font-size:.61rem;font-weight:700;cursor:default;position:relative;white-space:nowrap;}
+.ibadge.mm{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:var(--red);}
+.ibadge.ls{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:var(--orange);}
+.ibadge.hu{background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);color:var(--purple);}
+.ibadge.fo{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:var(--blue);}
+.th{position:relative;display:inline-flex;}
+.tb{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#0a0b10;border:1px solid var(--border2);border-radius:8px;padding:9px 12px;min-width:200px;max-width:250px;font-size:.71rem;color:var(--text2);line-height:1.55;z-index:999;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.5);white-space:normal;word-break:break-word;}
+.tb::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#0a0b10;}
+.th:hover .tb,.th:focus .tb,.th.to .tb{display:block;}
+.tb-t{font-weight:700;color:var(--text);margin-bottom:3px;font-size:.72rem;}
 
-  td {
-    padding: 10px 14px;
-    color: var(--text);
-    white-space: nowrap;
-    border-right: 1px solid var(--border);
-    vertical-align: middle;
-  }
-  td:last-child { border-right: none; }
+/* EMPTY */
+.empty{text-align:center;padding:52px 24px;color:var(--text3);}
+.empty .ei{font-size:2.2rem;margin-bottom:10px;}
+.empty p{font-size:.82rem;}
 
-  .td-sku {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    font-weight: 500;
-    max-width: 160px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: #334155;
-  }
-  .td-asin {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--accent-blue);
-    font-weight: 500;
-  }
-  .td-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 500;
-    text-align: right;
-  }
-  .td-num.zero { color: var(--text-dim); }
-  .td-num.positive { color: #166534; }
-  .td-total {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    text-align: right;
-    background: #f0fdf4;
-    color: #14532d;
-  }
-  tbody tr.mismatch-row .td-total { background: #fefce8; color: #713f12; }
+/* TABLE FOOTER */
+.tbl-ft{padding:8px 16px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:.67rem;color:var(--text3);}
 
-  .badge-mismatch {
-    display: inline-flex; align-items: center; gap: 4px;
-    background: var(--accent-orange-bg);
-    color: var(--accent-orange);
-    border: 1px solid #fcd34d;
-    border-radius: 5px;
-    padding: 2px 8px;
-    font-size: 0.68rem;
-    font-weight: 700;
-    white-space: nowrap;
-  }
-  .badge-ok {
-    display: inline-flex; align-items: center; gap: 4px;
-    background: var(--accent-green-bg);
-    color: var(--accent-green);
-    border: 1px solid #86efac;
-    border-radius: 5px;
-    padding: 2px 8px;
-    font-size: 0.68rem;
-    font-weight: 700;
-  }
-  .badge-fc-only {
-    display: inline-flex; align-items: center; gap: 4px;
-    background: var(--accent-blue-bg);
-    color: var(--accent-blue);
-    border: 1px solid #93c5fd;
-    border-radius: 5px;
-    padding: 2px 8px;
-    font-size: 0.68rem;
-    font-weight: 700;
-  }
-
-  /* ── FOOTER ── */
-  .footer {
-    margin-top: 12px;
-    padding: 8px 14px;
-    font-size: 0.68rem;
-    color: var(--text-dim);
-    font-family: 'JetBrains Mono', monospace;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  /* ── EMPTY STATE ── */
-  .empty-state {
-    text-align: center;
-    padding: 56px 24px;
-    color: var(--text-muted);
-  }
-  .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
-  .empty-state p { font-size: 0.85rem; }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 768px) {
-    .main { padding: 16px; }
-    .header { padding: 14px 16px; }
-    .stats-grid { grid-template-columns: 1fr 1fr; }
-  }
+@media(max-width:768px){.main{padding:14px;}.hdr{padding:0 14px;}.kpi-grid{grid-template-columns:1fr 1fr;}}
 </style>
 </head>
 <body>
 
-<header class="header">
-  <div class="header-left">
-    <div class="header-logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#1a1916" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
-      </svg>
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="5" rx="1"/><rect x="2" y="10" width="20" height="5" rx="1"/><rect x="2" y="17" width="20" height="5" rx="1"/></svg>
     </div>
     <div>
-      <div class="header h1" style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#f5f4f0;">Inventory Dashboard</div>
-      <div class="header-sub" id="last-updated">Connecting to Google Sheets…</div>
+      <div class="hdr-title">Inventory Intelligence</div>
+      <div class="hdr-sub" id="last-sync">Connecting…</div>
     </div>
   </div>
-  <div class="live-badge"><div class="live-dot"></div><span id="live-status">Loading</span></div>
+  <div class="sync-pill"><div class="sdot" id="sdot"></div><span id="slbl">Loading</span></div>
 </header>
 
-<main class="main">
-  <!-- Loading -->
-  <div id="loading">
-    <div class="loader-ring"></div>
-    <div class="loader-text">Fetching sheets data…</div>
+<div id="scr-load">
+  <div class="spinner"></div>
+  <div><div class="load-msg">Fetching Google Sheets…</div><div class="load-step" id="lstep">Initialising</div></div>
+</div>
+
+<div id="scr-err" class="main">
+  <div class="err-t">⚠ Failed to load dashboard</div>
+  <div class="err-b" id="errbody"></div>
+</div>
+
+<div id="scr-dash">
+<div class="main">
+
+  <div id="dbg"></div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi ci"><div class="kpi-lbl">Total Sellable</div><div class="kpi-val" id="k0">—</div><div class="kpi-sub">FC + FBA combined</div></div>
+    <div class="kpi cg"><div class="kpi-lbl">FC Sellable</div><div class="kpi-val" id="k1">—</div><div class="kpi-sub">Warehouse stock</div></div>
+    <div class="kpi cb"><div class="kpi-lbl">FBA Available</div><div class="kpi-val" id="k2">—</div><div class="kpi-sub">Amazon fulfillable</div></div>
+    <div class="kpi cp"><div class="kpi-lbl">Total Unsellable</div><div class="kpi-val" id="k3">—</div><div class="kpi-sub">FC + FBA unsellable</div></div>
+    <div class="kpi co"><div class="kpi-lbl">Low Stock SKUs</div><div class="kpi-val" id="k4">—</div><div class="kpi-sub">Total sellable &lt; 50</div></div>
+    <div class="kpi cr"><div class="kpi-lbl">Flagged SKUs</div><div class="kpi-val" id="k5">—</div><div class="kpi-sub">Rows with any issue</div></div>
   </div>
 
-  <!-- Error -->
-  <div id="error-box"></div>
-
-  <!-- Dashboard -->
-  <div id="dashboard">
-    <!-- Stats -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">Total Sellable Units</div>
-        <div class="stat-value" id="stat-total">—</div>
-        <div class="stat-sub">FC Sellable + FBA Available</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Total SKUs</div>
-        <div class="stat-value" id="stat-skus">—</div>
-        <div class="stat-sub">Unique ASINs tracked</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">FBA Only</div>
-        <div class="stat-value" id="stat-fba-only">—</div>
-        <div class="stat-sub">In FBA, not found in FC</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">ASIN Mismatches</div>
-        <div class="stat-value" id="stat-mismatch">—</div>
-        <div class="stat-sub">FC missing / unmatched</div>
-      </div>
-    </div>
-
-    <!-- Table -->
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <span class="section-title">Inventory</span>
-        <span class="row-count" id="row-count">0 rows</span>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <div class="search-wrap">
-          <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" id="search-input" placeholder="Search SKU or ASIN…" oninput="applyFilters()" />
+  <!-- Charts -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-hd">
+        <div class="chart-title">Sellable Stock — FC vs FBA (Top 15)</div>
+        <div class="bar-legend">
+          <div class="bl-item"><div class="bl-dot" style="background:#6366f1"></div>FC Sellable</div>
+          <div class="bl-item"><div class="bl-dot" style="background:#38bdf8"></div>FBA Available</div>
         </div>
-        <button class="filter-btn" id="btn-mismatch" onclick="toggleMismatchFilter()">⚠ Mismatches only</button>
-        <button class="filter-btn" id="btn-fc-only" onclick="toggleFCFilter()">FC-Only</button>
       </div>
+      <div class="bar-wrap"><canvas id="cbar"></canvas></div>
     </div>
-
-    <div class="table-wrap">
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th onclick="sortBy('sku')">SKU <span class="sort-icon" data-col="sku">↕</span></th>
-              <th onclick="sortBy('asin')">ASIN <span class="sort-icon" data-col="asin">↕</span></th>
-              <th onclick="sortBy('fc_sellable')" style="text-align:right">FC Sellable <span class="sort-icon" data-col="fc_sellable">↕</span></th>
-              <th onclick="sortBy('fc_unsellable')" style="text-align:right">FC Unsellable <span class="sort-icon" data-col="fc_unsellable">↕</span></th>
-              <th onclick="sortBy('fba_available')" style="text-align:right">FBA Available <span class="sort-icon" data-col="fba_available">↕</span></th>
-              <th onclick="sortBy('fba_unsellable')" style="text-align:right">FBA Unsellable <span class="sort-icon" data-col="fba_unsellable">↕</span></th>
-              <th onclick="sortBy('total')" style="text-align:right">Total <span class="sort-icon" data-col="total">↕</span></th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="table-body"></tbody>
-        </table>
-      </div>
-      <div class="footer">
-        <span id="footer-count">—</span>
-        <span id="footer-time">—</span>
+    <div class="chart-card">
+      <div class="chart-hd"><div class="chart-title">Unsellable Breakdown</div></div>
+      <div class="donut-outer">
+        <div class="donut-ring">
+          <canvas id="cdonut" width="170" height="170"></canvas>
+          <div class="donut-ctr"><div class="dc-val" id="dtotal">—</div><div class="dc-lbl">Unsellable</div></div>
+        </div>
+        <div class="dl">
+          <div class="dl-item"><div class="dl-sw" style="background:#a78bfa"></div><span id="dl0">FC — —</span></div>
+          <div class="dl-item"><div class="dl-sw" style="background:#f59e0b"></div><span id="dl1">FBA — —</span></div>
+        </div>
       </div>
     </div>
   </div>
-</main>
+
+  <!-- Table -->
+  <div class="tbl-hd">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="sec-title">Inventory Table</span>
+      <span class="rbadge" id="rbadge">—</span>
+    </div>
+    <div class="tbl-tools">
+      <div class="srch">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="sinput" placeholder="Search SKU or ASIN…" oninput="applyFilters()"/>
+      </div>
+      <div class="chips">
+        <button class="chip" id="chmm" onclick="toggleChip('mm')">⚠ Mismatch</button>
+        <button class="chip" id="chls" onclick="toggleChip('ls')">↓ Low Stock</button>
+        <button class="chip" id="chhu" onclick="toggleChip('hu')">↑ High Unsellable</button>
+        <button class="chip" id="chfo" onclick="toggleChip('fo')">◈ FC Only</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tbl-outer">
+    <div class="tbl-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortBy('sku')"><div class="thi">SKU<span class="sarr" data-col="sku">↕</span></div></th>
+            <th onclick="sortBy('asin')"><div class="thi">ASIN<span class="sarr" data-col="asin">↕</span></div></th>
+            <th class="nc" onclick="sortBy('fc_sellable')"><div class="thi">FC Sellable<span class="sarr" data-col="fc_sellable">↕</span></div></th>
+            <th class="nc" onclick="sortBy('fc_unsellable')"><div class="thi">FC Unsellable<span class="sarr" data-col="fc_unsellable">↕</span></div></th>
+            <th class="nc" onclick="sortBy('fba_available')"><div class="thi">FBA Available<span class="sarr" data-col="fba_available">↕</span></div></th>
+            <th class="nc" onclick="sortBy('fba_unsellable')"><div class="thi">FBA Unsellable<span class="sarr" data-col="fba_unsellable">↕</span></div></th>
+            <th class="nc" onclick="sortBy('total')"><div class="thi">Total<span class="sarr" data-col="total">↕</span></div></th>
+            <th onclick="sortBy('issue_count')"><div class="thi">Status<span class="sarr" data-col="issue_count">↕</span></div></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="tbl-ft">
+      <span id="tfc">—</span>
+      <span id="tft">—</span>
+    </div>
+  </div>
+
+</div>
+</div>
 
 <script>
-// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════
 // CONFIG
-// ══════════════════════════════════════════════════════
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4/export?format=xlsx&id=1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4";
-const SHEET_SELLABLE    = "Sellable inventory";
-const SHEET_UNSELLABLE  = "Unsellable";
-const SHEET_FBA         = "FBA_Inventory";
+// ══════════════════════════════════════════
+const SHEET_URL="https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4/export?format=xlsx";
+const SH_SELL="Sellable inventory", SH_UN="Unsellable", SH_FBA="FBA_Inventory";
 
-// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════
 // STATE
-// ══════════════════════════════════════════════════════
-let allRows = [];
-let filteredRows = [];
-let sortCol = null;
-let sortDir = 1;
-let filterMismatch = false;
-let filterFCOnly = false;
+// ══════════════════════════════════════════
+let allRows=[],filteredRows=[];
+let sortCol=null,sortDir=-1;
+let chips=new Set();
+let barChart=null,donutChart=null;
+let dbgLog=[];
 
-// ══════════════════════════════════════════════════════
-// FETCH & PARSE
-// ══════════════════════════════════════════════════════
-async function fetchData() {
-  const res = await fetch(SHEET_URL);
-  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-  const ab = await res.arrayBuffer();
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+const $=id=>document.getElementById(id);
+const set=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
+const norm=v=>String(v??'').trim().toUpperCase();
+const str=v=>String(v??'').trim();
+const toNum=v=>{if(v===''||v==null)return 0;const n=parseFloat(String(v).replace(/,/g,''));return isNaN(n)?0:Math.round(n);};
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function dbg(...a){const s=a.join(' ');dbgLog.push(s);console.log('[INV]',s);}
+function step(s){const e=$('lstep');if(e)e.textContent=s;}
+
+// ══════════════════════════════════════════
+// FETCH
+// ══════════════════════════════════════════
+async function fetchData(){
+  step('Fetching spreadsheet…');
+  const r=await fetch(SHEET_URL);
+  if(!r.ok)throw new Error(`HTTP ${r.status} ${r.statusText}`);
+  const ab=await r.arrayBuffer();
+  dbg('Bytes:',ab.byteLength);
   return ab;
 }
 
-function parseSheets(ab) {
-  const wb = XLSX.read(ab, { type: "array", cellDates: true });
-
-  const sellableSheet = findSheet(wb, SHEET_SELLABLE);
-  const unsellableSheet = findSheet(wb, SHEET_UNSELLABLE);
-  const fbaSheet = findSheet(wb, SHEET_FBA);
-
-  if (!sellableSheet) throw new Error(`Sheet "${SHEET_SELLABLE}" not found.\nAvailable: ${wb.SheetNames.join(', ')}`);
-  if (!unsellableSheet) throw new Error(`Sheet "${SHEET_UNSELLABLE}" not found.\nAvailable: ${wb.SheetNames.join(', ')}`);
-  if (!fbaSheet) throw new Error(`Sheet "${SHEET_FBA}" not found.\nAvailable: ${wb.SheetNames.join(', ')}`);
-
-  const sellable   = sheetToObjects(wb.Sheets[sellableSheet]);
-  const unsellable = sheetToObjects(wb.Sheets[unsellableSheet]);
-  const fba        = sheetToObjects(wb.Sheets[fbaSheet]);
-
-  return { sellable, unsellable, fba };
+// ══════════════════════════════════════════
+// PARSE
+// ══════════════════════════════════════════
+function findSheet(wb,name){
+  const lo=name.toLowerCase().replace(/[^a-z0-9]/g,'');
+  return wb.SheetNames.find(s=>s.toLowerCase()===name.toLowerCase())
+      || wb.SheetNames.find(s=>s.toLowerCase().replace(/[^a-z0-9]/g,'')===lo)
+      || wb.SheetNames.find(s=>s.toLowerCase().replace(/[^a-z0-9]/g,'').includes(lo.slice(0,6)))
+      || null;
 }
 
-function findSheet(wb, name) {
-  const lower = name.toLowerCase();
-  return wb.SheetNames.find(s => s.toLowerCase() === lower) ||
-         wb.SheetNames.find(s => s.toLowerCase().includes(lower.split(' ')[0])) ||
-         null;
+function sheetToRows(ws){
+  if(!ws||!ws['!ref'])return[];
+  const range=XLSX.utils.decode_range(ws['!ref']);
+  // Find header row: first row containing "asin" or "sku"
+  let hRow=range.s.r;
+  outer:for(let r=range.s.r;r<=Math.min(range.s.r+8,range.e.r);r++){
+    for(let c=range.s.c;c<=range.e.c;c++){
+      const cell=ws[XLSX.utils.encode_cell({r,c})];
+      if(cell&&String(cell.v||'').toLowerCase().match(/\basin\b|^sku$/)){hRow=r;break outer;}
+    }
+  }
+  const ref=XLSX.utils.encode_range({s:{r:hRow,c:range.s.c},e:range.e});
+  const sub={...ws,'!ref':ref};
+  const rows=XLSX.utils.sheet_to_json(sub,{defval:''});
+  return rows.filter(row=>Object.values(row).some(v=>v!==''));
 }
 
-function sheetToObjects(ws) {
-  const raw = XLSX.utils.sheet_to_json(ws, { defval: "" });
-  return raw.filter(r => Object.values(r).some(v => v !== ""));
+function parseSheets(ab){
+  step('Parsing…');
+  const wb=XLSX.read(ab,{type:'array'});
+  dbg('Sheets:',wb.SheetNames.join(', '));
+  const sN=findSheet(wb,SH_SELL),uN=findSheet(wb,SH_UN),fN=findSheet(wb,SH_FBA);
+  if(!sN)throw new Error(`Sheet "${SH_SELL}" not found. Available: ${wb.SheetNames.join(', ')}`);
+  if(!uN)throw new Error(`Sheet "${SH_UN}" not found. Available: ${wb.SheetNames.join(', ')}`);
+  if(!fN)throw new Error(`Sheet "${SH_FBA}" not found. Available: ${wb.SheetNames.join(', ')}`);
+  dbg('Mapped →',sN,'|',uN,'|',fN);
+  const sell=sheetToRows(wb.Sheets[sN]);
+  const unsell=sheetToRows(wb.Sheets[uN]);
+  const fba=sheetToRows(wb.Sheets[fN]);
+  dbg('Rows → sell:',sell.length,'unsell:',unsell.length,'fba:',fba.length);
+  if(sell.length)  dbg('Sell cols:',  Object.keys(sell[0]).join(' | '));
+  if(unsell.length)dbg('Unsell cols:',Object.keys(unsell[0]).join(' | '));
+  if(fba.length)   dbg('FBA cols:',   Object.keys(fba[0]).join(' | '));
+  return{sell,unsell,fba};
 }
 
-// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════
 // COLUMN DETECTION
-// ══════════════════════════════════════════════════════
-function detectCol(headers, patterns) {
-  const lower = headers.map(h => String(h).toLowerCase());
-  for (const pat of patterns) {
-    const idx = lower.findIndex(h => h.includes(pat));
-    if (idx !== -1) return headers[idx];
+// ══════════════════════════════════════════
+function detectCol(headers,patterns){
+  const lo=headers.map(h=>String(h).toLowerCase().replace(/[\s_\-]/g,''));
+  for(const p of patterns){
+    const cp=p.replace(/[\s_\-]/g,'');
+    let i=lo.findIndex(h=>h===cp);
+    if(i!==-1)return headers[i];
+    i=lo.findIndex(h=>h.includes(cp));
+    if(i!==-1)return headers[i];
   }
   return null;
 }
 
-function extractColumns(rows, config) {
-  if (!rows.length) return { colMap: {}, rows };
-  const headers = Object.keys(rows[0]);
-  const colMap = {};
-  for (const [key, patterns] of Object.entries(config)) {
-    colMap[key] = detectCol(headers, patterns);
+// ══════════════════════════════════════════
+// MERGE — ASIN ONLY JOIN
+// ══════════════════════════════════════════
+function mergeData(sell,unsell,fba){
+  step('Merging by ASIN…');
+
+  // FC Sellable columns
+  const sh=sell.length?Object.keys(sell[0]):[];
+  const sc={
+    asin: detectCol(sh,['asin']),
+    sku:  detectCol(sh,['sku','msku','sellersku','merchantsku']),
+    qty:  detectCol(sh,['sellable','sellableqty','availableqty','quantity','qty','stock','units','available']),
+  };
+  dbg('FCsell cols → asin:',sc.asin,'sku:',sc.sku,'qty:',sc.qty);
+
+  // FC Unsellable columns
+  const uh=unsell.length?Object.keys(unsell[0]):[];
+  const uc={
+    asin: detectCol(uh,['asin']),
+    sku:  detectCol(uh,['sku','msku','sellersku']),
+  };
+  const skipU=new Set([uc.asin,uc.sku].filter(Boolean));
+  const dateCols=uh.filter(h=>!skipU.has(h)&&h!=='');
+  const lastDC=dateCols.length?dateCols[dateCols.length-1]:null;
+  dbg('FCunsell cols → asin:',uc.asin,'lastDateCol:',lastDC);
+
+  // FBA columns — using known col names from the CSV
+  const fh=fba.length?Object.keys(fba[0]):[];
+  const fc={
+    asin:   detectCol(fh,['asin']),
+    sku:    detectCol(fh,['sku','sellersku','msku']),
+    avail:  detectCol(fh,['afnfulfillable','fulfillable','fulfillablequantity','afnavailablequantity']),
+    unsell: detectCol(fh,['afnunsellable','unsellablequantity','unfulfillable']),
+  };
+  dbg('FBA cols → asin:',fc.asin,'sku:',fc.sku,'avail:',fc.avail,'unsell:',fc.unsell);
+
+  if(!fc.asin)throw new Error('ASIN column not found in FBA sheet.\nHeaders: '+fh.join(', '));
+
+  // Build FC Sellable map
+  const sellMap=new Map(),sellSku=new Map();
+  if(sc.asin&&sc.qty){
+    for(const row of sell){
+      const asin=norm(row[sc.asin]);
+      if(!asin||asin==='-'||asin==='ASIN')continue;
+      sellMap.set(asin,(sellMap.get(asin)||0)+toNum(row[sc.qty]));
+      const sku=str(row[sc.sku]||'');
+      if(sku&&!sellSku.has(asin))sellSku.set(asin,sku);
+    }
+  } else {
+    dbg('WARNING: FC Sellable qty column not found. FC Sellable will be 0.');
   }
-  return { colMap, rows };
-}
+  dbg('FCsell map size:',sellMap.size,'sample:',JSON.stringify([...sellMap.entries()].slice(0,3)));
 
-// ══════════════════════════════════════════════════════
-// MERGE
-// ══════════════════════════════════════════════════════
-function mergeData(sellableRows, unsellableRows, fbaRows) {
-  // ── Detect columns in each sheet ──────────────────
-  const { colMap: fcSellCols } = extractColumns(sellableRows, {
-    asin: ["asin"],
-    sku:  ["sku", "msku", "seller sku", "seller-sku"],
-    qty:  ["sellable", "stock", "qty", "quantity", "available"],
-  });
-
-  const { colMap: fcUnCols } = extractColumns(unsellableRows, {
-    asin: ["asin"],
-    sku:  ["sku", "msku", "seller sku", "seller-sku"],
-  });
-
-  const { colMap: fbaCols } = extractColumns(fbaRows, {
-    asin:          ["asin"],
-    sku:           ["sku", "msku", "seller sku", "seller-sku"],
-    fba_available: ["afn-fulfillable", "fulfillable", "available"],
-    fba_unsellable:["afn-unsellable", "unsellable", "unfulfillable"],
-  });
-
-  // ── Build FC Sellable map: ASIN → qty ─────────────
-  const fcSellMap = new Map();
-  const fcSellSkuMap = new Map();
-  for (const row of sellableRows) {
-    const asin = norm(row[fcSellCols.asin]);
-    if (!asin) continue;
-    const qty = toNum(row[fcSellCols.qty]);
-    const sku  = str(row[fcSellCols.sku]);
-    fcSellMap.set(asin, (fcSellMap.get(asin) || 0) + qty);
-    if (sku && !fcSellSkuMap.has(asin)) fcSellSkuMap.set(asin, sku);
+  // Build FC Unsellable map
+  const unMap=new Map();
+  if(uc.asin&&lastDC){
+    for(const row of unsell){
+      const asin=norm(row[uc.asin]);
+      if(!asin||asin==='-'||asin==='ASIN')continue;
+      unMap.set(asin,(unMap.get(asin)||0)+toNum(row[lastDC]));
+    }
+  } else {
+    dbg('WARNING: FC Unsellable ASIN or date column not found. FC Unsellable will be 0.');
   }
+  dbg('FCunsell map size:',unMap.size,'sample:',JSON.stringify([...unMap.entries()].slice(0,3)));
 
-  // ── Build FC Unsellable map: ASIN → latest date col value ──
-  // Detect date columns = all columns except ASIN and SKU cols
-  const fcUnHeaders = unsellableRows.length ? Object.keys(unsellableRows[0]) : [];
-  const skipCols = new Set([fcUnCols.asin, fcUnCols.sku].filter(Boolean));
-  const dateCols = fcUnHeaders.filter(h => !skipCols.has(h));
-  const lastDateCol = dateCols.length ? dateCols[dateCols.length - 1] : null;
+  // Merge
+  const merged=[];
+  const fbaSet=new Set();
 
-  const fcUnMap = new Map();
-  for (const row of unsellableRows) {
-    const asin = norm(row[fcUnCols.asin]);
-    if (!asin) continue;
-    const qty = lastDateCol ? toNum(row[lastDateCol]) : 0;
-    fcUnMap.set(asin, (fcUnMap.get(asin) || 0) + qty);
-  }
+  for(const row of fba){
+    const asin=norm(row[fc.asin]);
+    if(!asin||asin==='-'||asin==='ASIN')continue;
+    fbaSet.add(asin);
 
-  // ── Build FBA map and base rows ─────────────────────
-  const merged = [];
-  const fbaAsins = new Set();
+    const sku      =str(row[fc.sku]||'--');
+    const fbaAvail =toNum(row[fc.avail]);
+    const fbaUnsell=toNum(row[fc.unsell]);
+    const hasFCMatch=sellMap.has(asin)||unMap.has(asin);
+    const fcSell   =sellMap.get(asin)??0;
+    const fcUnsell =unMap.get(asin)??0;
+    const total    =(hasFCMatch?fcSell:0)+fbaAvail;
+    const issues   =buildIssues({hasFCMatch,isFCOnly:false,fcSell,fbaAvail,fcUnsell,fbaUnsell,total});
 
-  for (const row of fbaRows) {
-    const asin = norm(row[fbaCols.asin]);
-    if (!asin) continue;
-    fbaAsins.add(asin);
-
-    const sku          = str(row[fbaCols.sku]) || "--";
-    const fbaAvail     = toNum(row[fbaCols.fba_available]);
-    const fbaUnsell    = toNum(row[fbaCols.fba_unsellable]);
-
-    const fcSell   = fcSellMap.get(asin) ?? null;
-    const fcUnsell = fcUnMap.get(asin)   ?? null;
-
-    const hasFCMatch = fcSellMap.has(asin) || fcUnMap.has(asin);
-
-    merged.push({
-      sku,
-      asin,
-      fc_sellable:   hasFCMatch ? (fcSell   ?? 0) : 0,
-      fc_unsellable: hasFCMatch ? (fcUnsell ?? 0) : 0,
-      fba_available:  fbaAvail,
-      fba_unsellable: fbaUnsell,
-      total: (hasFCMatch ? (fcSell ?? 0) : 0) + fbaAvail,
-      status: hasFCMatch ? "ok" : "mismatch",
-      source: "fba",
-    });
+    merged.push({sku,asin,fc_sellable:hasFCMatch?fcSell:0,fc_unsellable:hasFCMatch?fcUnsell:0,fba_available:fbaAvail,fba_unsellable:fbaUnsell,total,hasFCMatch,source:'fba',issues,issue_count:issues.length});
   }
 
-  // ── FC-Only rows (in FC but not in FBA) ─────────────
-  const allFCAsins = new Set([...fcSellMap.keys(), ...fcUnMap.keys()]);
-  for (const asin of allFCAsins) {
-    if (fbaAsins.has(asin)) continue;
-    const fcSell   = fcSellMap.get(asin)   ?? 0;
-    const fcUnsell = fcUnMap.get(asin)     ?? 0;
-    const sku      = fcSellSkuMap.get(asin) || "--";
-    merged.push({
-      sku,
-      asin,
-      fc_sellable:   fcSell,
-      fc_unsellable: fcUnsell,
-      fba_available:  0,
-      fba_unsellable: 0,
-      total: fcSell,
-      status: "fc_only",
-      source: "fc",
-    });
+  // FC-only rows
+  const allFCAsins=new Set([...sellMap.keys(),...unMap.keys()]);
+  for(const asin of allFCAsins){
+    if(fbaSet.has(asin))continue;
+    const fcSell  =sellMap.get(asin)??0;
+    const fcUnsell=unMap.get(asin)??0;
+    const sku     =sellSku.get(asin)||'--';
+    const total   =fcSell;
+    const issues  =buildIssues({hasFCMatch:true,isFCOnly:true,fcSell,fbaAvail:0,fcUnsell,fbaUnsell:0,total});
+    merged.push({sku,asin,fc_sellable:fcSell,fc_unsellable:fcUnsell,fba_available:0,fba_unsellable:0,total,hasFCMatch:true,source:'fc',issues,issue_count:issues.length});
   }
 
+  dbg('Merged:',merged.length,'FC-matched:',merged.filter(r=>r.hasFCMatch).length,'Mismatch:',merged.filter(r=>!r.hasFCMatch&&r.source==='fba').length,'FC-only:',merged.filter(r=>r.source==='fc').length);
   return merged;
 }
 
-// ══════════════════════════════════════════════════════
-// RENDER SUMMARY
-// ══════════════════════════════════════════════════════
-function renderSummary(rows) {
-  const totalUnits  = rows.reduce((s, r) => s + r.total, 0);
-  const totalSKUs   = rows.length;
-  const fbaOnly     = rows.filter(r => r.status === "mismatch").length;
-  const mismatch    = rows.filter(r => r.status === "mismatch" || r.status === "fc_only").length;
-
-  setText("stat-total",    totalUnits.toLocaleString());
-  setText("stat-skus",     totalSKUs.toLocaleString());
-  setText("stat-fba-only", fbaOnly.toLocaleString());
-  setText("stat-mismatch", (rows.filter(r=>r.status==="mismatch").length).toLocaleString());
+// ══════════════════════════════════════════
+// ISSUE BUILDER
+// ══════════════════════════════════════════
+function buildIssues({hasFCMatch,isFCOnly,fcSell,fbaAvail,fcUnsell,fbaUnsell,total}){
+  const issues=[];
+  if(!hasFCMatch){
+    issues.push({type:'mm',label:'ASIN Mismatch',msg:'This ASIN is present in FBA inventory but was not found in any FC sheet. FC Sellable and Unsellable values will show as 0.'});
+  }
+  if(isFCOnly){
+    issues.push({type:'fo',label:'FC Only',msg:'This ASIN exists in the FC sheets but has no matching FBA inventory record. FBA values are shown as 0.'});
+  }
+  if(total>0&&total<50){
+    issues.push({type:'ls',label:'Low Stock',msg:`Total sellable is ${total} units, which is below the low-stock threshold of 50. Consider restocking soon.`});
+  }
+  if(total===0&&!isFCOnly&&hasFCMatch){
+    issues.push({type:'ls',label:'Out of Stock',msg:'Total sellable units is 0. No stock available in FC or FBA.'});
+  }
+  const totUn=fcUnsell+fbaUnsell;
+  if(totUn>0&&total>0&&totUn>=total){
+    issues.push({type:'hu',label:'High Unsellable',msg:`Unsellable units (${totUn}) equals or exceeds sellable (${total}). Review condition, disposal or reprocessing.`});
+  } else if(totUn>0&&total>0&&totUn/total>0.4){
+    issues.push({type:'hu',label:'High Unsellable',msg:`Unsellable (${totUn}) is ${Math.round(totUn/total*100)}% of sellable (${total}), above the 40% warning threshold.`});
+  }
+  return issues;
 }
 
-// ══════════════════════════════════════════════════════
-// RENDER TABLE
-// ══════════════════════════════════════════════════════
-function renderTable(rows) {
-  const tbody = document.getElementById("table-body");
-  if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">📦</div><p>No rows match the current filter.</p></div></td></tr>`;
-    setText("row-count", "0 rows");
-    setText("footer-count", "No rows displayed");
+// ══════════════════════════════════════════
+// KPIs
+// ══════════════════════════════════════════
+function renderKPIs(rows){
+  set('k0',rows.reduce((s,r)=>s+r.total,0).toLocaleString());
+  set('k1',rows.reduce((s,r)=>s+r.fc_sellable,0).toLocaleString());
+  set('k2',rows.reduce((s,r)=>s+r.fba_available,0).toLocaleString());
+  set('k3',rows.reduce((s,r)=>s+r.fc_unsellable+r.fba_unsellable,0).toLocaleString());
+  set('k4',rows.filter(r=>r.total>=0&&r.total<50).length.toLocaleString());
+  set('k5',rows.filter(r=>r.issue_count>0).length.toLocaleString());
+}
+
+// ══════════════════════════════════════════
+// CHARTS
+// ══════════════════════════════════════════
+function renderCharts(rows){
+  const top15=[...rows].filter(r=>r.fc_sellable>0||r.fba_available>0).sort((a,b)=>(b.fc_sellable+b.fba_available)-(a.fc_sellable+a.fba_available)).slice(0,15);
+  const labels=top15.map(r=>{const s=str(r.sku);return s.length>16?s.slice(0,15)+'…':s;});
+
+  if(barChart)barChart.destroy();
+  barChart=new Chart($('cbar').getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'FC Sellable',data:top15.map(r=>r.fc_sellable),backgroundColor:'rgba(99,102,241,0.8)',borderColor:'#6366f1',borderWidth:1,borderRadius:4,borderSkipped:false},
+      {label:'FBA Available',data:top15.map(r=>r.fba_available),backgroundColor:'rgba(56,189,248,0.8)',borderColor:'#38bdf8',borderWidth:1,borderRadius:4,borderSkipped:false},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{backgroundColor:'#0a0b10',borderColor:'#2a2d3e',borderWidth:1,titleColor:'#e8eaf6',bodyColor:'#9395a5',padding:10,callbacks:{title:items=>top15[items[0].dataIndex].sku}},
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5f6170',font:{size:10,family:'IBM Plex Mono'},maxRotation:35}},
+        y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#5f6170',font:{size:10,family:'IBM Plex Mono'}}},
+      }
+    }
+  });
+
+  const fcUn=rows.reduce((s,r)=>s+r.fc_unsellable,0);
+  const fbaUn=rows.reduce((s,r)=>s+r.fba_unsellable,0);
+  const grand=fcUn+fbaUn;
+  set('dtotal',grand.toLocaleString());
+  set('dl0',`FC — ${fcUn.toLocaleString()}`);
+  set('dl1',`FBA — ${fbaUn.toLocaleString()}`);
+
+  if(donutChart)donutChart.destroy();
+  const hasD=grand>0;
+  donutChart=new Chart($('cdonut').getContext('2d'),{
+    type:'doughnut',
+    data:{
+      labels:['FC Unsellable','FBA Unsellable'],
+      datasets:[{data:hasD?[fcUn,fbaUn]:[1,1],backgroundColor:hasD?['rgba(167,139,250,0.85)','rgba(245,158,11,0.85)']:['rgba(60,63,90,0.4)','rgba(60,63,90,0.4)'],borderColor:'#1e2130',borderWidth:2,hoverOffset:6}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},tooltip:{enabled:hasD,backgroundColor:'#0a0b10',borderColor:'#2a2d3e',borderWidth:1,titleColor:'#e8eaf6',bodyColor:'#9395a5',padding:10}}}
+  });
+}
+
+// ══════════════════════════════════════════
+// TABLE
+// ══════════════════════════════════════════
+function renderTable(rows){
+  const tbody=$('tbody');
+  set('rbadge',`${rows.length.toLocaleString()} rows`);
+  set('tfc',`Showing ${rows.length.toLocaleString()} of ${allRows.length.toLocaleString()} entries`);
+  if(!rows.length){
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="ei">📦</div><p>No rows match the current filter.</p></div></td></tr>`;
     return;
   }
+  tbody.innerHTML=rows.map(r=>{
+    const tc=r.total<50&&r.total>=0?'ntot low':'ntot';
+    return `<tr>
+      <td class="td-sku" title="${esc(r.sku)}">${esc(r.sku)}</td>
+      <td class="td-asin">${esc(r.asin)}</td>
+      <td class="n ${r.fc_sellable>0?'g':r.fc_sellable===0?'z':''}">${r.fc_sellable.toLocaleString()}</td>
+      <td class="n ${r.fc_unsellable>0?'w':'z'}">${r.fc_unsellable.toLocaleString()}</td>
+      <td class="n ${r.fba_available>0?'g':'z'}">${r.fba_available.toLocaleString()}</td>
+      <td class="n ${r.fba_unsellable>0?'w':'z'}">${r.fba_unsellable.toLocaleString()}</td>
+      <td class="${tc}">${r.total.toLocaleString()}</td>
+      <td class="td-st">${badgeHtml(r)}</td>
+    </tr>`;
+  }).join('');
 
-  const html = rows.map(r => {
-    const isMismatch = r.status === "mismatch";
-    const isFCOnly   = r.status === "fc_only";
-
-    const badge = isMismatch
-      ? `<span class="badge-mismatch">⚠ ASIN Mismatch</span>`
-      : isFCOnly
-        ? `<span class="badge-fc-only">◈ FC Only</span>`
-        : `<span class="badge-ok">✓ Matched</span>`;
-
-    return `
-<tr class="${isMismatch ? 'mismatch-row' : ''}">
-  <td class="td-sku" title="${esc(r.sku)}">${esc(r.sku)}</td>
-  <td class="td-asin">${esc(r.asin)}</td>
-  <td class="td-num ${r.fc_sellable   === 0 ? 'zero' : 'positive'}">${r.fc_sellable.toLocaleString()}</td>
-  <td class="td-num ${r.fc_unsellable === 0 ? 'zero' : ''}">${r.fc_unsellable.toLocaleString()}</td>
-  <td class="td-num ${r.fba_available  === 0 ? 'zero' : 'positive'}">${r.fba_available.toLocaleString()}</td>
-  <td class="td-num ${r.fba_unsellable === 0 ? 'zero' : ''}">${r.fba_unsellable.toLocaleString()}</td>
-  <td class="td-num td-total">${r.total.toLocaleString()}</td>
-  <td>${badge}</td>
-</tr>`;
-  }).join("");
-
-  tbody.innerHTML = html;
-  setText("row-count",    `${rows.length.toLocaleString()} row${rows.length !== 1 ? 's' : ''}`);
-  setText("footer-count", `Showing ${rows.length.toLocaleString()} of ${allRows.length.toLocaleString()} rows`);
+  // Touch tooltips
+  tbody.querySelectorAll('.th').forEach(el=>{
+    el.addEventListener('click',e=>{
+      e.stopPropagation();
+      const was=el.classList.contains('to');
+      document.querySelectorAll('.th.to').forEach(x=>x.classList.remove('to'));
+      if(!was)el.classList.add('to');
+    });
+  });
 }
 
-// ══════════════════════════════════════════════════════
-// FILTERS & SORT
-// ══════════════════════════════════════════════════════
-function applyFilters() {
-  const q = document.getElementById("search-input").value.trim().toLowerCase();
-  let rows = [...allRows];
+function badgeHtml(r){
+  if(!r.issues||!r.issues.length)return '';
+  return '<div class="iw">'+r.issues.map(iss=>`
+    <span class="th" tabindex="0">
+      <span class="ibadge ${iss.type}">${iss.type==='mm'?'⚠':iss.type==='fo'?'◈':iss.type==='ls'?'↓':'↑'} ${esc(iss.label)}</span>
+      <div class="tb"><div class="tb-t">${esc(iss.label)}</div>${esc(iss.msg)}</div>
+    </span>`).join('')+'</div>';
+}
 
-  if (filterMismatch) rows = rows.filter(r => r.status === "mismatch");
-  if (filterFCOnly)   rows = rows.filter(r => r.status === "fc_only");
+// Global click dismissal
+document.addEventListener('click',()=>document.querySelectorAll('.th.to').forEach(x=>x.classList.remove('to')));
 
-  if (q) {
-    rows = rows.filter(r =>
-      r.sku.toLowerCase().includes(q) ||
-      r.asin.toLowerCase().includes(q)
-    );
-  }
-
-  if (sortCol) {
-    rows.sort((a, b) => {
-      const av = a[sortCol], bv = b[sortCol];
-      if (typeof av === "number") return (av - bv) * sortDir;
-      return String(av).localeCompare(String(bv)) * sortDir;
+// ══════════════════════════════════════════
+// FILTERS + SORT
+// ══════════════════════════════════════════
+function applyFilters(){
+  const q=$('sinput').value.trim().toLowerCase();
+  let rows=[...allRows];
+  if(chips.has('mm'))  rows=rows.filter(r=>r.issues.some(i=>i.type==='mm'));
+  if(chips.has('ls'))  rows=rows.filter(r=>r.issues.some(i=>i.type==='ls'));
+  if(chips.has('hu'))  rows=rows.filter(r=>r.issues.some(i=>i.type==='hu'));
+  if(chips.has('fo'))  rows=rows.filter(r=>r.issues.some(i=>i.type==='fo'));
+  if(q)rows=rows.filter(r=>r.sku.toLowerCase().includes(q)||r.asin.toLowerCase().includes(q));
+  if(sortCol){
+    rows.sort((a,b)=>{
+      const av=a[sortCol],bv=b[sortCol];
+      return(typeof av==='number'?(av-bv):String(av).localeCompare(String(bv)))*sortDir;
     });
   }
-
-  filteredRows = rows;
+  filteredRows=rows;
   renderTable(rows);
 }
 
-function sortBy(col) {
-  if (sortCol === col) sortDir *= -1;
-  else { sortCol = col; sortDir = -1; }
-
-  document.querySelectorAll("th").forEach(th => th.classList.remove("sorted"));
-  document.querySelectorAll(".sort-icon").forEach(s => {
-    s.textContent = "↕";
-    s.style.color = "";
-  });
-  const icon = document.querySelector(`.sort-icon[data-col="${col}"]`);
-  if (icon) {
-    icon.textContent = sortDir === 1 ? "↑" : "↓";
-    icon.closest("th").classList.add("sorted");
+function toggleChip(name){
+  chips.has(name)?chips.delete(name):chips.add(name);
+  const map={mm:'r',ls:'o',hu:'p',fo:'b'};
+  for(const[n,cls]of Object.entries(map)){
+    const el=$('ch'+n);
+    if(!el)continue;
+    el.className='chip';
+    if(chips.has(n))el.classList.add(cls);
   }
   applyFilters();
 }
 
-function toggleMismatchFilter() {
-  filterMismatch = !filterMismatch;
-  filterFCOnly = false;
-  document.getElementById("btn-mismatch").classList.toggle("active", filterMismatch);
-  document.getElementById("btn-fc-only").classList.remove("active");
-  applyFilters();
-}
-function toggleFCFilter() {
-  filterFCOnly = !filterFCOnly;
-  filterMismatch = false;
-  document.getElementById("btn-fc-only").classList.toggle("active", filterFCOnly);
-  document.getElementById("btn-mismatch").classList.remove("active");
+function sortBy(col){
+  if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=-1;}
+  document.querySelectorAll('.sarr').forEach(s=>s.textContent='↕');
+  document.querySelectorAll('th').forEach(t=>t.classList.remove('srt'));
+  const a=document.querySelector(`.sarr[data-col="${col}"]`);
+  if(a){a.textContent=sortDir===1?'↑':'↓';a.closest('th').classList.add('srt');}
   applyFilters();
 }
 
-// ══════════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════════
-function norm(v)  { return String(v ?? "").trim().toUpperCase(); }
-function str(v)   { return String(v ?? "").trim(); }
-function toNum(v) {
-  if (v === "" || v === null || v === undefined) return 0;
-  const n = parseFloat(String(v).replace(/,/g, ""));
-  return isNaN(n) ? 0 : Math.round(n);
-}
-function setText(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = val;
-}
-function esc(s) {
-  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
-
-// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════
 // BOOT
-// ══════════════════════════════════════════════════════
-async function boot() {
-  const t0 = performance.now();
-  try {
-    const ab = await fetchData();
-    const { sellable, unsellable, fba } = parseSheets(ab);
-    allRows = mergeData(sellable, unsellable, fba);
-
-    renderSummary(allRows);
+// ══════════════════════════════════════════
+async function boot(){
+  const t0=performance.now();
+  try{
+    const ab=await fetchData();
+    const{sell,unsell,fba}=parseSheets(ab);
+    allRows=mergeData(sell,unsell,fba);
+    renderKPIs(allRows);
+    renderCharts(allRows);
     applyFilters();
 
-    document.getElementById("loading").style.display   = "none";
-    document.getElementById("dashboard").style.display = "block";
+    const dp=$('dbg');
+    if(dbgLog.some(l=>l.includes('WARNING'))){dp.textContent='[Debug]\n'+dbgLog.join('\n');dp.style.display='block';}
 
-    const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
-    const now = new Date().toLocaleString();
-    setText("last-updated",  `Last synced: ${now}`);
-    setText("live-status",   "Live");
-    setText("footer-time",   `Loaded in ${elapsed}s · ${allRows.length} total rows`);
-    document.querySelector(".live-dot").style.background = "#4ade80";
-
-  } catch (err) {
-    document.getElementById("loading").style.display = "none";
-    const box = document.getElementById("error-box");
-    box.style.display = "block";
-    box.textContent = `❌ Failed to load dashboard\n\n${err.message}\n\nNote: The Google Sheet must be publicly accessible (File → Share → Anyone with the link can view).`;
-    setText("live-status", "Error");
-    document.querySelector(".live-dot").style.background = "#f87171";
-    setText("last-updated", "Failed to sync");
+    $('scr-load').style.display='none';
+    $('scr-dash').style.display='block';
+    const ms=((performance.now()-t0)/1000).toFixed(2);
+    set('last-sync','Last synced: '+new Date().toLocaleString());
+    set('slbl','Live');
+    set('tft','Loaded in '+ms+'s');
+    $('sdot').className='sdot live';
+  }catch(err){
+    $('scr-load').style.display='none';
+    $('scr-err').style.display='block';
+    $('errbody').textContent=err.message+'\n\n[Debug Log]\n'+dbgLog.join('\n')+'\n\nNote: Sheet must be shared as "Anyone with the link can view".';
+    set('slbl','Error');
+    $('sdot').className='sdot err';
   }
 }
 
