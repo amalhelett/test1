@@ -296,7 +296,7 @@ td:last-child{border-right:none;}
 // CONFIG
 // ══════════════════════════════════════════
 const SHEET_URL="https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4/export?format=xlsx";
-const SH_SELL="Sellable inventory", SH_UN="Unsellable", SH_FBA="FBA_Inventory";
+const SH_SELL="Sellable_Inventory", SH_UN="Unsellable", SH_FBA="FBA_Inventory";
 
 // ══════════════════════════════════════════
 // STATE
@@ -404,7 +404,7 @@ function mergeData(sell,unsell,fba){
   const sc={
     asin: detectCol(sh,['asin']),
     sku:  detectCol(sh,['sku','msku','sellersku','merchantsku']),
-    qty:  detectCol(sh,['sellable','sellableqty','availableqty','quantity','qty','stock','units','available']),
+    qty:  detectCol(sh,['sellable stock','sellablestock','sellable','sellableqty','availableqty','quantity','qty','stock','units','available']),
   };
   dbg('FCsell cols → asin:',sc.asin,'sku:',sc.sku,'qty:',sc.qty);
 
@@ -419,15 +419,20 @@ function mergeData(sell,unsell,fba){
   const lastDC=dateCols.length?dateCols[dateCols.length-1]:null;
   dbg('FCunsell cols → asin:',uc.asin,'lastDateCol:',lastDC);
 
-  // FBA columns — using known col names from the CSV
+  // FBA columns — supports two formats:
+  // Format A (condition-code rows): "Warehouse-Condition-code" + "Quantity Available"
+  //   Each ASIN appears multiple times, once per condition (SELLABLE / UNSELLABLE)
+  // Format B (classic report): single row per ASIN with separate avail/unsell columns
   const fh=fba.length?Object.keys(fba[0]):[];
   const fc={
-    asin:   detectCol(fh,['asin']),
-    sku:    detectCol(fh,['sku','sellersku','msku']),
-    avail:  detectCol(fh,['afnfulfillable','fulfillable','fulfillablequantity','afnavailablequantity']),
-    unsell: detectCol(fh,['afnunsellable','unsellablequantity','unfulfillable']),
+    asin:      detectCol(fh,['asin']),
+    sku:       detectCol(fh,['seller-sku','sellersku','sku','msku']),
+    condition: detectCol(fh,['warehouse-condition-code','warehouseconditioncode','warehouse-condition','conditioncode']),
+    qty:       detectCol(fh,['quantity available','quantityavailable','qty available','quantity','qty']),
+    avail:     detectCol(fh,['afnfulfillable','fulfillable','fulfillablequantity','afnavailablequantity']),
+    unsell:    detectCol(fh,['afnunsellable','unsellablequantity','unfulfillable']),
   };
-  dbg('FBA cols → asin:',fc.asin,'sku:',fc.sku,'avail:',fc.avail,'unsell:',fc.unsell);
+  dbg('FBA cols → asin:',fc.asin,'sku:',fc.sku,'condition:',fc.condition,'qty:',fc.qty,'avail:',fc.avail,'unsell:',fc.unsell);
 
   if(!fc.asin)throw new Error('ASIN column not found in FBA sheet.\nHeaders: '+fh.join(', '));
 
@@ -459,28 +464,56 @@ function mergeData(sell,unsell,fba){
   }
   dbg('FCunsell map size:',unMap.size,'sample:',JSON.stringify([...unMap.entries()].slice(0,3)));
 
-  // Merge
+  // ── Build FBA map (grouped by ASIN, handles both formats) ──
+  const fbaAvailMap=new Map(), fbaUnsellMap=new Map(), fbaSkuMap=new Map();
+  const useConditionFormat = !!(fc.condition && fc.qty);
+
+  if(useConditionFormat){
+    dbg('FBA format: condition-code rows (Warehouse-Condition-code + Quantity Available)');
+    for(const row of fba){
+      const asin=norm(row[fc.asin]);
+      if(!asin||asin==='-'||asin==='ASIN')continue;
+      const sku=str(row[fc.sku]||'');
+      const condition=norm(row[fc.condition]);
+      const qty=toNum(row[fc.qty]);
+      if(sku&&!fbaSkuMap.has(asin))fbaSkuMap.set(asin,sku);
+      if(condition==='SELLABLE'){
+        fbaAvailMap.set(asin,(fbaAvailMap.get(asin)||0)+qty);
+      } else {
+        // UNSELLABLE + CARRIER_DAMAGED + CUSTOMER_DAMAGED + DEFECTIVE etc.
+        fbaUnsellMap.set(asin,(fbaUnsellMap.get(asin)||0)+qty);
+      }
+    }
+  } else {
+    dbg('FBA format: classic single-row per ASIN');
+    for(const row of fba){
+      const asin=norm(row[fc.asin]);
+      if(!asin||asin==='-'||asin==='ASIN')continue;
+      const sku=str(row[fc.sku]||'');
+      if(sku&&!fbaSkuMap.has(asin))fbaSkuMap.set(asin,sku);
+      fbaAvailMap.set(asin,(fbaAvailMap.get(asin)||0)+toNum(fc.avail?row[fc.avail]:0));
+      fbaUnsellMap.set(asin,(fbaUnsellMap.get(asin)||0)+toNum(fc.unsell?row[fc.unsell]:0));
+    }
+  }
+  dbg('FBA avail map:',fbaAvailMap.size,'unsell map:',fbaUnsellMap.size);
+
+  // ── Merge all ASINs ──
   const merged=[];
-  const fbaSet=new Set();
+  const fbaSet=new Set([...fbaAvailMap.keys(),...fbaUnsellMap.keys(),...fbaSkuMap.keys()]);
 
-  for(const row of fba){
-    const asin=norm(row[fc.asin]);
-    if(!asin||asin==='-'||asin==='ASIN')continue;
-    fbaSet.add(asin);
-
-    const sku      =str(row[fc.sku]||'--');
-    const fbaAvail =toNum(row[fc.avail]);
-    const fbaUnsell=toNum(row[fc.unsell]);
+  for(const asin of fbaSet){
+    const sku       =fbaSkuMap.get(asin)||'--';
+    const fbaAvail  =fbaAvailMap.get(asin)||0;
+    const fbaUnsell =fbaUnsellMap.get(asin)||0;
     const hasFCMatch=sellMap.has(asin)||unMap.has(asin);
-    const fcSell   =sellMap.get(asin)??0;
-    const fcUnsell =unMap.get(asin)??0;
-    const total    =(hasFCMatch?fcSell:0)+fbaAvail;
-    const issues   =buildIssues({hasFCMatch,isFCOnly:false,fcSell,fbaAvail,fcUnsell,fbaUnsell,total});
-
+    const fcSell    =sellMap.get(asin)??0;
+    const fcUnsell  =unMap.get(asin)??0;
+    const total     =(hasFCMatch?fcSell:0)+fbaAvail;
+    const issues    =buildIssues({hasFCMatch,isFCOnly:false,fcSell,fbaAvail,fcUnsell,fbaUnsell:fbaUnsell,total});
     merged.push({sku,asin,fc_sellable:hasFCMatch?fcSell:0,fc_unsellable:hasFCMatch?fcUnsell:0,fba_available:fbaAvail,fba_unsellable:fbaUnsell,total,hasFCMatch,source:'fba',issues,issue_count:issues.length});
   }
 
-  // FC-only rows
+  // FC-only rows — ASINs in FC sheets but not in FBA at all
   const allFCAsins=new Set([...sellMap.keys(),...unMap.keys()]);
   for(const asin of allFCAsins){
     if(fbaSet.has(asin))continue;
