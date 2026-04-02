@@ -959,16 +959,20 @@ const dateCols = uh.filter(h => {
 });
 
 // Convert to actual dates and pick latest
-let lastDC = null;
+const skipU=new Set([uc.asin,uc.sku].filter(Boolean));
 
-if (dateCols.length) {
-  lastDC = dateCols
-    .map(col => ({
-      col,
-      date: new Date(col.split(/[-\/]/).reverse().join('-')) // handles DD-MM-YYYY
-    }))
-    .sort((a, b) => b.date - a.date)[0].col;
-}
+// Detect only date-like columns
+const dateCols = uh.filter(h => {
+  if (skipU.has(h) || !h) return false;
+
+  const val = String(h).trim();
+  return /^\d{1,4}[-\/]\d{1,2}[-\/]\d{1,4}$/.test(val);
+});
+
+// ✅ Pick FIRST (leftmost) date column
+const lastDC = dateCols.length ? dateCols[0] : null;
+
+dbg('FCunsell cols → asin:',uc.asin,'lastDateCol:',lastDC);
   dbg('FCunsell cols → asin:',uc.asin,'lastDateCol:',lastDC);
 
   // FBA columns — supports two formats:
