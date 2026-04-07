@@ -123,6 +123,29 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .chip.b{background:#041c2e;border-color:var(--blue);color:var(--blue);}
 .rbadge{height:30px;padding:0 10px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;font-family:'IBM Plex Mono',monospace;font-size:.69rem;color:var(--text3);display:flex;align-items:center;}
 
+/* ── DOWNLOAD BUTTON ── */
+.btn-dl{
+  height:30px;padding:0 12px;
+  background:linear-gradient(135deg,rgba(34,197,94,.15),rgba(34,197,94,.08));
+  border:1px solid rgba(34,197,94,.35);
+  border-radius:7px;
+  color:#4ade80;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.69rem;font-weight:600;
+  cursor:pointer;
+  display:flex;align-items:center;gap:6px;
+  transition:all .15s;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.btn-dl:hover{
+  background:linear-gradient(135deg,rgba(34,197,94,.25),rgba(34,197,94,.14));
+  border-color:rgba(34,197,94,.6);
+  color:#86efac;
+}
+.btn-dl:active{transform:scale(.97);}
+.btn-dl svg{flex-shrink:0;}
+
 /* TABLE */
 .tbl-outer{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
 .tbl-scroll{overflow:auto;max-height:620px;min-height:320px;}
@@ -258,6 +281,15 @@ td:last-child{border-right:none;}
         <button class="chip" id="chhu" onclick="toggleChip('hu')">↑ High Unsellable</button>
         <button class="chip" id="chfo" onclick="toggleChip('fo')">◈ FC Only</button>
       </div>
+      <!-- ── DOWNLOAD BUTTON ── -->
+      <button class="btn-dl" onclick="downloadExcel()" title="Download currently visible rows as Excel">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Export Excel
+      </button>
     </div>
   </div>
 
@@ -297,529 +329,138 @@ const SH_SELL="Sellable_Inventory", SH_UN="Unsellable", SH_FBA="FBA_Inventory";
 
 // ══════════════════════════════════════════
 // SKU MATCH MAP  (seller SKU names, keyed by ASIN)
-// Priority: sellerSku > FBA/FC name
 // ══════════════════════════════════════════
 const SKU_MAP = {
-  "B0GPCQ9KLN": {
-    "sellerSku": "Logic View Monitor HLT550",
-    "finalName": "HLT550 Video Monitor"
-  },
-  "B0F5Q4RV2R": {
-    "sellerSku": "Helett 2D Barcode Scanner Fba",
-    "finalName": "Helett 2D Barcode Scanner Fba"
-  },
-  "B0C8JRN652": {
-    "sellerSku": "UY16 UHF Wireless mic",
-    "finalName": "Uy 16 wireless mic"
-  },
-  "B0CN1153M4": {
-    "sellerSku": "Helett HT35 Dual UHF Mic",
-    "finalName": "Helett HT35 Dual UHF Mic"
-  },
-  "B0BRXX6HMR": {
-    "sellerSku": "Wifi Dongle FBA",
-    "finalName": "Wifi Dongle FBA"
-  },
-  "B0G1YY4MJK": {
-    "sellerSku": "Helett travel-Fi 4G",
-    "finalName": "Helett travelfi 4g Hotspot"
-  },
-  "B0BYZVNPL4": {
-    "sellerSku": "UNIY UY 35 Mini led Projector",
-    "finalName": "UNIY UY 35 Mini led Projector"
-  },
-  "B0C9CVWLL3": {
-    "sellerSku": "Uniy S11 FBA",
-    "finalName": "Uniy S11 FBA"
-  },
-  "B0FLK7RSCV": {
-    "sellerSku": "Helett HLT550 Portable Monitor",
-    "finalName": "Helett HLT550 Portable Monitor"
-  },
-  "B0DL5PXZ65": {
-    "sellerSku": "Helett H55C Thermal Label Printer",
-    "finalName": "H30c pro old (HE480)"
-  },
-  "B0FZSJRV5F": {
-    "sellerSku": "Helett H65C Label Printer",
-    "finalName": "H65C Mini Printer (New Blue)"
-  },
-  "B0D4F7Y3NZ": {
-    "sellerSku": "Helett H29 Wireless Drama Mic",
-    "finalName": "Helett H29 Wireless Drama Mic"
-  },
-  "B0DKXD4N4R": {
-    "sellerSku": "Helett A4L Pro Thermal Printer",
-    "finalName": "Helett A4L Pro Thermal Printer"
-  },
-  "B0CN11FZW5": {
-    "sellerSku": "T10 Projector FBA",
-    "finalName": "T10 Projector FBA"
-  },
-  "B0888WZ411": {
-    "sellerSku": "Helett TV",
-    "finalName": "Helett TV"
-  },
-  "B0C8TW9ZR6": {
-    "sellerSku": "I5-Z3IP-OQGJ",
-    "finalName": "I5-Z3IP-OQGJ"
-  },
-  "B0CL4GVKSN": {
-    "sellerSku": "UNIY T10 Mini Projector",
-    "finalName": "UNIY T10 Mini Projector"
-  },
-  "B0BFRS5BLT": {
-    "sellerSku": "UY8401 Smart Digital Door Lock FBA",
-    "finalName": "UY8401 Smart Digital Door Lock FBA"
-  },
-  "B0CB1DDNV7": {
-    "sellerSku": "UY20 Streaming mic",
-    "finalName": "UY20 Streaming mic"
-  },
-  "B0CJVGCB4K": {
-    "sellerSku": "helett L410 Thermal printer",
-    "finalName": "H30c printer (New)"
-  },
-  "B0CRB2KDC6": {
-    "sellerSku": "HT320 Digital Door MFN",
-    "finalName": "HT320 Smart lock"
-  },
-  "B01G46PYPO": {
-    "sellerSku": "UC46 New Projector 12",
-    "finalName": "UC46 New Projector 12"
-  },
-  "B0BZ8HF4WL": {
-    "sellerSku": "UNIY UY410 Barcode Scanner",
-    "finalName": "UNIY UY410 Barcode Scanner"
-  },
-  "B07TW7QMBN": {
-    "sellerSku": "YUNTAB 3G Tablet",
-    "finalName": "YUNTAB 3G Tablet"
-  },
-  "B07TD94GPJ": {
-    "sellerSku": "Proscan PLT8990-K",
-    "finalName": "Proscan PLT8990-K"
-  },
-  "B0BFFW365Y": {
-    "sellerSku": "UNIY UY610 Smart Door Lock FBA",
-    "finalName": "UNIY UY610 Smart Door Lock FBA"
-  },
-  "B0BPHT9WY9": {
-    "sellerSku": "UY40 Projector FBA",
-    "finalName": "UY40 Projector FBA"
-  },
-  "B0CLYLNCZD": {
-    "sellerSku": "810 App Door Lock FBA",
-    "finalName": "810 App Door Lock FBA"
-  },
-  "B0CFHRLWM2": {
-    "sellerSku": "helett HT 75W car power inverter",
-    "finalName": "helett HT 75W car power inverter"
-  },
-  "B0B5VQYGW6": {
-    "sellerSku": "UNIY Smart Life Security Camera",
-    "finalName": "UNIY Smart Life Security Camera"
-  },
-  "B0CQ24C7DX": {
-    "sellerSku": "V0-FM48-RT2B",
-    "finalName": "V0-FM48-RT2B"
-  },
-  "B0DGF32QRT": {
-    "sellerSku": "Helett AC1200 Dual Band Wifi Router",
-    "finalName": "AC1200 Wifi Router"
-  },
-  "B0DD7LH58C": {
-    "sellerSku": "Helett JH1200",
-    "finalName": "Helett JH1200"
-  },
-  "B0FZL52KY4": {
-    "sellerSku": "Helett infiStick Tv Stick",
-    "finalName": "Helett infiStick Tv Stick"
-  },
-  "B0CQTJH6WX": {
-    "sellerSku": "Car-Jumper-Black",
-    "finalName": "Car-Jumper-Black"
-  },
-  "B0D39NNN57": {
-    "sellerSku": "Helett HT15 wired desktop scanner",
-    "finalName": "Helett HT15 wired desktop scanner"
-  },
-  "B0D4F12NJT": {
-    "sellerSku": "Uniy U01 Rfid Card",
-    "finalName": "Uniy U01 Rfid Card"
-  },
-  "B0CD7YNMRM": {
-    "sellerSku": "XP-H1UH-2R9U",
-    "finalName": "XP-H1UH-2R9U"
-  },
-  "B07QLRJGDJ": {
-    "sellerSku": "4 UC46 Projector",
-    "finalName": "4 UC46 Projector"
-  },
-  "B0DXKWKBWQ": {
-    "sellerSku": "Helett 2x1.5 Thermal Label",
-    "finalName": "65C Label Roll"
-  },
-  "B0CHFQPZMK": {
-    "sellerSku": "helett HT200 Soundbar",
-    "finalName": "helett HT200 Soundbar"
-  },
-  "B0CB8YRRZ4": {
-    "sellerSku": "helett HU1 kids GPS Tracking watch",
-    "finalName": "helett HU1 kids GPS Tracking watch"
-  },
-  "B0CBC9G7W2": {
-    "sellerSku": "HT410 wired Barcode scanner FBA",
-    "finalName": "HT410 barcode (BLUE)"
-  },
-  "B0DLKM4N5G": {
-    "sellerSku": "Helett Z567 Tyre Inflator",
-    "finalName": "Helett Z567 Tyre Inflator"
-  },
-  "B0DGGPBX97": {
-    "sellerSku": "Helett travel-Fi 4g Hotspot",
-    "finalName": "Helett travel-Fi 4g Hotspot"
-  },
-  "B0DPCRLRNJ": {
-    "sellerSku": "HT20pro Wirelss Barcode Scanner",
-    "finalName": "HT20 Pro barcode"
-  },
-  "B0CQNM753Q": {
-    "sellerSku": "Helett H92i Android Tv Stick",
-    "finalName": "Helett H92i Android Tv Stick"
-  },
-  "B0C72FSCFM": {
-    "sellerSku": "U19 wireless Training Mic",
-    "finalName": "U19 wireless Training Mic"
-  },
-  "B0F1KF6P4J": {
-    "sellerSku": "Helett HT-M318 Desktop Barcode Scanner",
-    "finalName": "Helett HT-M318 Desktop Barcode Scanner"
-  },
-  "B07XP99KF8": {
-    "sellerSku": "UC46 0 Projector",
-    "finalName": "UC46 0 Projector"
-  },
-  "B0CXPX968F": {
-    "sellerSku": "H89i",
-    "finalName": "H89i"
-  },
-  "B0C999P5KB": {
-    "sellerSku": "HT210 galaxy projector kid",
-    "finalName": "HT210 galaxy projector kid"
-  },
-  "B09FGVPBHK": {
-    "sellerSku": "Led Projector",
-    "finalName": "Led Projector"
-  },
-  "B0BPPNNVT5": {
-    "sellerSku": "UNIY UY (310) 4G Wi-Fi  Hotspot Dongle",
-    "finalName": "UNIY UY (310) 4G Wi-Fi  Hotspot Dongle"
-  },
-  "B0DXC17SSS": {
-    "sellerSku": "HE24 Thermal Label 15x30",
-    "finalName": "HE24 Thermal Label 15x30"
-  },
-  "B0BDFLDDKR": {
-    "sellerSku": "UNIY UY8300 FBA",
-    "finalName": "UNIY UY8300 FBA"
-  },
-  "B0BJC4WGDK": {
-    "sellerSku": "UY 12 UHF Dual wireless MIC",
-    "finalName": "UY 12 UHF Dual wireless MIC"
-  },
-  "B0CBXG8CLB": {
-    "sellerSku": "HT210 Door lock",
-    "finalName": "HT210 Door lock"
-  },
-  "B084TQMCLN": {
-    "sellerSku": "UC 200 Projector",
-    "finalName": "UC 200 Projector"
-  },
-  "B016DGF0ZY": {
-    "sellerSku": "UNIC UC40 Projector 1080p",
-    "finalName": "UNIC UC40 Projector 1080p"
-  },
-  "B0BLNLYVFQ": {
-    "sellerSku": "G5-MA5V-WDTH",
-    "finalName": "G5-MA5V-WDTH"
-  },
-  "B0DD6WNP26": {
-    "sellerSku": "Helett HW10 wifi extender",
-    "finalName": "Helett HW10 wifi extender"
-  },
-  "B08LQ1G624": {
-    "sellerSku": "UC46 projector",
-    "finalName": "UC46 projector"
-  },
-  "B0DPJ8BWCG": {
-    "sellerSku": "Helett H92 TV Stick",
-    "finalName": "Helett H92 TV Stick"
-  },
-  "B0CXN44J7J": {
-    "sellerSku": "helett H58i Bluetooth Printer FBA",
-    "finalName": "H58i mini printer"
-  },
-  "B0CNLW386T": {
-    "sellerSku": "Helett HT15 wired Barcode Scanner FBA",
-    "finalName": "Helett HT15 wired Barcode Scanner FBA"
-  },
-  "B0D9LS2P2F": {
-    "sellerSku": "Helett HL96 Hair Dryer FBA",
-    "finalName": "Helett HL96 Hair Dryer"
-  },
-  "B0DW8DX2M9": {
-    "sellerSku": "Helett H30CLite Printer",
-    "finalName": "H30c lite printer"
-  },
-  "B013JYPTA4": {
-    "sellerSku": "UC 40+ Projector 1325",
-    "finalName": "UC 40+ Projector 1325"
-  },
-  "B0BRKVYG8X": {
-    "sellerSku": "2D-B2X1-4D6F",
-    "finalName": "2D-B2X1-4D6F"
-  },
-  "B07TB4DZTK": {
-    "sellerSku": "RD-801 Projector",
-    "finalName": "RD-801 Projector"
-  },
-  "B0FSSL1Q2X": {
-    "sellerSku": "Helett H30C Printer New FBA",
-    "finalName": "H30c printer(Old)"
-  },
-  "B0F8QKDJN3": {
-    "sellerSku": "Helett Ht15e Desktop Barcode Scanner FBA",
-    "finalName": "HT15E"
-  },
-  "B0DJK3GNCY": {
-    "sellerSku": "helett WS5",
-    "finalName": "helett WS5"
-  },
-  "B01DYJ8R4O": {
-    "sellerSku": "UNIC UC30 PROJECTOR",
-    "finalName": "UNIC UC30 PROJECTOR"
-  },
-  "B0DW8PCP6D": {
-    "sellerSku": "Helett 4x6 Thermal Label",
-    "finalName": "Helett 4x6 Thermal Label"
-  },
-  "B0D9KKFVT6": {
-    "sellerSku": "UNIY UY720 Smart Door Lock FBA",
-    "finalName": "UNIY UY720 Smart Door Lock FBA"
-  },
-  "B0BL3LJHRB": {
-    "sellerSku": "UY46 old",
-    "finalName": "UY46 old"
-  },
-  "B08FC23JD7": {
-    "sellerSku": "UC20 projector",
-    "finalName": "UC20 projector"
-  },
-  "B0CZ99K438": {
-    "sellerSku": "H80i Autocut Thermal Printer",
-    "finalName": "H80i Autocut Thermal Printer"
-  },
-  "B07T2VZMSG": {
-    "sellerSku": "HTPHT580BLACK",
-    "finalName": "HTPHT580BLACK"
-  },
-  "B0DDL3TR1L": {
-    "sellerSku": "helett HE24 Label Printer",
-    "finalName": "HE24 mini printer"
-  },
-  "B0CPDPTHVN": {
-    "sellerSku": "Helett Ht20 Barcode Scanner",
-    "finalName": "HT20 barcode"
-  },
-  "B0D9KJJ7WF": {
-    "sellerSku": "D8-ZNA6-NT4M",
-    "finalName": "D8-ZNA6-NT4M"
-  },
-  "B07FDG8GQT": {
-    "sellerSku": "1UC46Projector",
-    "finalName": "1UC46Projector"
-  },
-  "B01H35Y352": {
-    "sellerSku": "UC 30 Project 3",
-    "finalName": "UC 30 Project 3"
-  },
-  "B07MK547MK": {
-    "sellerSku": "UC46 90",
-    "finalName": "UC46 90"
-  },
-  "B0GSZRF4M5": {
-    "sellerSku": "Helett Z567 Tyre Inflator NEW",
-    "finalName": "Helett Z567 Tyre Inflator NEW"
-  },
-  "B0C3HZDJ5C": {
-    "sellerSku": "ZT-NKSW-TLDE",
-    "finalName": "ZT-NKSW-TLDE"
-  },
-  "B0FL2VFCT9": {
-    "sellerSku": "HE24 Thermal Label 12x50",
-    "finalName": "HE24 Labell Roll (12x50)"
-  },
-  "B0C96F68YL": {
-    "sellerSku": "helett HT8400 car power inverter",
-    "finalName": "helett HT8400 car power inverter"
-  },
-  "B0D1P7SC46": {
-    "sellerSku": "Helett H65C 2in1 Thermal Printer",
-    "finalName": "Helett H65C 2in1 Thermal Printer"
-  },
-  "B0BRXVQ85M": {
-    "sellerSku": "UNIY UY20+ Mini Led projector",
-    "finalName": "UNIY UY20+ Mini Led projector"
-  },
-  "B0DTNVQ34H": {
-    "sellerSku": "HE24 Label Tape",
-    "finalName": "12x30 HE24 labels"
-  },
-  "B0FLV3V1W4": {
-    "sellerSku": "Helett H65Clite Printer",
-    "finalName": "H65C Lite"
-  },
-  "B0FZSCW83R": {
-    "sellerSku": "Helett H75C Printer",
-    "finalName": "H65C Mini Printer (New)"
-  },
-  "B0BD9191XX": {
-    "sellerSku": "UY400 mini Led Projector",
-    "finalName": "UY400 mini Led Projector"
-  },
-  "B0FGCT1MWB": {
-    "sellerSku": "Helett Ht15 Desktop Barcode Scanner",
-    "finalName": "HT15 wired desktop scanner"
-  },
-  "B0DQGSMG4N": {
-    "sellerSku": "Helett Label Paper 4x6",
-    "finalName": "Helett Label Paper 4x6"
-  },
-  "B091TCSG4D": {
-    "sellerSku": "UNIY UY200",
-    "finalName": "UNIY UY200"
-  },
-  "B0CR75SMCQ": {
-    "sellerSku": "H41",
-    "finalName": "H41"
-  },
-  "B07T85LWH7": {
-    "sellerSku": "Yuntab 7 inch 3G Unlocked",
-    "finalName": "Yuntab 7 inch 3G Unlocked"
-  },
-  "B09TY1SZP6": {
-    "sellerSku": "New UY46 FBA",
-    "finalName": "New UY46 FBA"
-  },
-  "B0DTQ3ZCBH": {
-    "sellerSku": "HE24 Thermal Label Tape",
-    "finalName": "15X50 HE24 labels"
-  },
-  "B0DRL8ZDWX": {
-    "sellerSku": "Helett H30C Lite Printer",
-    "finalName": "Helett H30C Lite Printer"
-  },
-  "B086ZFW6HD": {
-    "sellerSku": "FILPO Soap Dispenser",
-    "finalName": "FILPO Soap Dispenser"
-  },
-  "B0BJMLX4RR": {
-    "sellerSku": "UY10 Wired Mic",
-    "finalName": "UY10 Wired Mic"
-  },
-  "B0CQTK12SW": {
-    "sellerSku": "Rice-Cooker-Black",
-    "finalName": "Rice-Cooker-Black"
-  },
-  "B0DQGQY98X": {
-    "sellerSku": "Helett HE760 Mobile Printer",
-    "finalName": "Helett HE760 Mobile Printer"
-  },
-  "B09K4M1JSN": {
-    "sellerSku": "UNIY UY 46 Projector",
-    "finalName": "UNIY UY 46 Projector"
-  },
-  "B0D9T8R3W8": {
-    "sellerSku": "Helett H01 Label Holder FBA",
-    "finalName": "H01 Label Holder"
-  },
-  "B09TWLRXZ3": {
-    "sellerSku": "UNIY A1 128 GB SdCard",
-    "finalName": "UNIY A1 128 GB SdCard"
-  },
-  "B0FKZPDH66": {
-    "sellerSku": "Helett H30C Pro Printer",
-    "finalName": "H30C pro Aiyin"
-  },
-  "B07Q5PC3SV": {
-    "sellerSku": "UC 40+ Projector",
-    "finalName": "UC 40+ Projector"
-  },
-  "B0F6MXY655": {
-    "sellerSku": "HT20proL Wirelss Barcode Scanner MFN",
-    "finalName": "HT20proL Wirelss Barcode Scanner MFN"
-  },
-  "B0BRN9ZGL1": {
-    "sellerSku": "UY-TTH9-BCAS",
-    "finalName": "UY-TTH9-BCAS"
-  },
-  "B0BLV54ZQK": {
-    "sellerSku": "UY 14 UHF Wireless MIC",
-    "finalName": "UY 14 wireless mic"
-  },
-  "B0CC8ZFPRX": {
-    "sellerSku": "HT510 Barcode Scanner",
-    "finalName": "HT510 Barcode Scanner"
-  },
-  "B0DD7RS56N": {
-    "sellerSku": "Helett Z567 Tyre Inflator FBA",
-    "finalName": "Helett Z567 Tyre Inflator FBA"
-  },
-  "B0CB8X5RCN": {
-    "sellerSku": "UNIY UY85 kids smart watch",
-    "finalName": "UNIY UY85 kids smart watch"
-  },
-  "B0C8NNB48Z": {
-    "sellerSku": "UY510 Barcode Scanner",
-    "finalName": "UY510 Barcode Scanner"
-  },
-  "B08PSLZYZV": {
-    "sellerSku": "UC20 mini projector",
-    "finalName": "UC20 mini projector"
-  },
-  "B0DBCW1PS4": {
-    "sellerSku": "UNIY UY720 Smartdoor Lock FBA",
-    "finalName": "UY720 door lock"
-  },
-  "B0CQM5THV3": {
-    "sellerSku": "ECO- D3-BT",
-    "finalName": "BT Sound bar"
-  },
-  "B0GDKY6QHN": {
-    "sellerSku": "Helett infiStick android stick",
-    "finalName": "Helett infiStick Tv Stick"
-  },
-  "B0FGTMFZFM": {
-    "sellerSku": "MO-DT5V-SO2M",
-    "finalName": "MO-DT5V-SO2M"
-  },
-  "B0DGCG6MN4": {
-    "sellerSku": "Helett HE760 Receipt Printer FBA",
-    "finalName": "Helett HE760 Receipt Printer FBA"
-  },
-  "B0CR7JGRYJ": {
-    "sellerSku": "SKU: OFFICE_LOCK_BLACK_30-100",
-    "finalName": "SKU: OFFICE_LOCK_BLACK_30-100"
-  },
-  "B0FHQSL9DH": {
-    "sellerSku": "Helett H30CPro Printer",
-    "finalName": "Helett H30CPro Printer"
-  },
-  "B0CMMMJ5WY": {
-    "sellerSku": "Helett HT35 Dual microphone",
-    "finalName": "Helett HT35 Dual microphone"
-  }
+  "B0GPCQ9KLN": { "sellerSku": "Logic View Monitor HLT550", "finalName": "HLT550 Video Monitor" },
+  "B0F5Q4RV2R": { "sellerSku": "Helett 2D Barcode Scanner Fba", "finalName": "Helett 2D Barcode Scanner Fba" },
+  "B0C8JRN652": { "sellerSku": "UY16 UHF Wireless mic", "finalName": "Uy 16 wireless mic" },
+  "B0CN1153M4": { "sellerSku": "Helett HT35 Dual UHF Mic", "finalName": "Helett HT35 Dual UHF Mic" },
+  "B0BRXX6HMR": { "sellerSku": "Wifi Dongle FBA", "finalName": "Wifi Dongle FBA" },
+  "B0G1YY4MJK": { "sellerSku": "Helett travel-Fi 4G", "finalName": "Helett travelfi 4g Hotspot" },
+  "B0BYZVNPL4": { "sellerSku": "UNIY UY 35 Mini led Projector", "finalName": "UNIY UY 35 Mini led Projector" },
+  "B0C9CVWLL3": { "sellerSku": "Uniy S11 FBA", "finalName": "Uniy S11 FBA" },
+  "B0FLK7RSCV": { "sellerSku": "Helett HLT550 Portable Monitor", "finalName": "Helett HLT550 Portable Monitor" },
+  "B0DL5PXZ65": { "sellerSku": "Helett H55C Thermal Label Printer", "finalName": "H30c pro old (HE480)" },
+  "B0FZSJRV5F": { "sellerSku": "Helett H65C Label Printer", "finalName": "H65C Mini Printer (New Blue)" },
+  "B0D4F7Y3NZ": { "sellerSku": "Helett H29 Wireless Drama Mic", "finalName": "Helett H29 Wireless Drama Mic" },
+  "B0DKXD4N4R": { "sellerSku": "Helett A4L Pro Thermal Printer", "finalName": "Helett A4L Pro Thermal Printer" },
+  "B0CN11FZW5": { "sellerSku": "T10 Projector FBA", "finalName": "T10 Projector FBA" },
+  "B0888WZ411": { "sellerSku": "Helett TV", "finalName": "Helett TV" },
+  "B0C8TW9ZR6": { "sellerSku": "I5-Z3IP-OQGJ", "finalName": "I5-Z3IP-OQGJ" },
+  "B0CL4GVKSN": { "sellerSku": "UNIY T10 Mini Projector", "finalName": "UNIY T10 Mini Projector" },
+  "B0BFRS5BLT": { "sellerSku": "UY8401 Smart Digital Door Lock FBA", "finalName": "UY8401 Smart Digital Door Lock FBA" },
+  "B0CB1DDNV7": { "sellerSku": "UY20 Streaming mic", "finalName": "UY20 Streaming mic" },
+  "B0CJVGCB4K": { "sellerSku": "helett L410 Thermal printer", "finalName": "H30c printer (New)" },
+  "B0CRB2KDC6": { "sellerSku": "HT320 Digital Door MFN", "finalName": "HT320 Smart lock" },
+  "B01G46PYPO": { "sellerSku": "UC46 New Projector 12", "finalName": "UC46 New Projector 12" },
+  "B0BZ8HF4WL": { "sellerSku": "UNIY UY410 Barcode Scanner", "finalName": "UNIY UY410 Barcode Scanner" },
+  "B07TW7QMBN": { "sellerSku": "YUNTAB 3G Tablet", "finalName": "YUNTAB 3G Tablet" },
+  "B07TD94GPJ": { "sellerSku": "Proscan PLT8990-K", "finalName": "Proscan PLT8990-K" },
+  "B0BFFW365Y": { "sellerSku": "UNIY UY610 Smart Door Lock FBA", "finalName": "UNIY UY610 Smart Door Lock FBA" },
+  "B0BPHT9WY9": { "sellerSku": "UY40 Projector FBA", "finalName": "UY40 Projector FBA" },
+  "B0CLYLNCZD": { "sellerSku": "810 App Door Lock FBA", "finalName": "810 App Door Lock FBA" },
+  "B0CFHRLWM2": { "sellerSku": "helett HT 75W car power inverter", "finalName": "helett HT 75W car power inverter" },
+  "B0B5VQYGW6": { "sellerSku": "UNIY Smart Life Security Camera", "finalName": "UNIY Smart Life Security Camera" },
+  "B0CQ24C7DX": { "sellerSku": "V0-FM48-RT2B", "finalName": "V0-FM48-RT2B" },
+  "B0DGF32QRT": { "sellerSku": "Helett AC1200 Dual Band Wifi Router", "finalName": "AC1200 Wifi Router" },
+  "B0DD7LH58C": { "sellerSku": "Helett JH1200", "finalName": "Helett JH1200" },
+  "B0FZL52KY4": { "sellerSku": "Helett infiStick Tv Stick", "finalName": "Helett infiStick Tv Stick" },
+  "B0CQTJH6WX": { "sellerSku": "Car-Jumper-Black", "finalName": "Car-Jumper-Black" },
+  "B0D39NNN57": { "sellerSku": "Helett HT15 wired desktop scanner", "finalName": "Helett HT15 wired desktop scanner" },
+  "B0D4F12NJT": { "sellerSku": "Uniy U01 Rfid Card", "finalName": "Uniy U01 Rfid Card" },
+  "B0CD7YNMRM": { "sellerSku": "XP-H1UH-2R9U", "finalName": "XP-H1UH-2R9U" },
+  "B07QLRJGDJ": { "sellerSku": "4 UC46 Projector", "finalName": "4 UC46 Projector" },
+  "B0DXKWKBWQ": { "sellerSku": "Helett 2x1.5 Thermal Label", "finalName": "65C Label Roll" },
+  "B0CHFQPZMK": { "sellerSku": "helett HT200 Soundbar", "finalName": "helett HT200 Soundbar" },
+  "B0CB8YRRZ4": { "sellerSku": "helett HU1 kids GPS Tracking watch", "finalName": "helett HU1 kids GPS Tracking watch" },
+  "B0CBC9G7W2": { "sellerSku": "HT410 wired Barcode scanner FBA", "finalName": "HT410 barcode (BLUE)" },
+  "B0DLKM4N5G": { "sellerSku": "Helett Z567 Tyre Inflator", "finalName": "Helett Z567 Tyre Inflator" },
+  "B0DGGPBX97": { "sellerSku": "Helett travel-Fi 4g Hotspot", "finalName": "Helett travel-Fi 4g Hotspot" },
+  "B0DPCRLRNJ": { "sellerSku": "HT20pro Wirelss Barcode Scanner", "finalName": "HT20 Pro barcode" },
+  "B0CQNM753Q": { "sellerSku": "Helett H92i Android Tv Stick", "finalName": "Helett H92i Android Tv Stick" },
+  "B0C72FSCFM": { "sellerSku": "U19 wireless Training Mic", "finalName": "U19 wireless Training Mic" },
+  "B0F1KF6P4J": { "sellerSku": "Helett HT-M318 Desktop Barcode Scanner", "finalName": "Helett HT-M318 Desktop Barcode Scanner" },
+  "B07XP99KF8": { "sellerSku": "UC46 0 Projector", "finalName": "UC46 0 Projector" },
+  "B0CXPX968F": { "sellerSku": "H89i", "finalName": "H89i" },
+  "B0C999P5KB": { "sellerSku": "HT210 galaxy projector kid", "finalName": "HT210 galaxy projector kid" },
+  "B09FGVPBHK": { "sellerSku": "Led Projector", "finalName": "Led Projector" },
+  "B0BPPNNVT5": { "sellerSku": "UNIY UY (310) 4G Wi-Fi  Hotspot Dongle", "finalName": "UNIY UY (310) 4G Wi-Fi  Hotspot Dongle" },
+  "B0DXC17SSS": { "sellerSku": "HE24 Thermal Label 15x30", "finalName": "HE24 Thermal Label 15x30" },
+  "B0BDFLDDKR": { "sellerSku": "UNIY UY8300 FBA", "finalName": "UNIY UY8300 FBA" },
+  "B0BJC4WGDK": { "sellerSku": "UY 12 UHF Dual wireless MIC", "finalName": "UY 12 UHF Dual wireless MIC" },
+  "B0CBXG8CLB": { "sellerSku": "HT210 Door lock", "finalName": "HT210 Door lock" },
+  "B084TQMCLN": { "sellerSku": "UC 200 Projector", "finalName": "UC 200 Projector" },
+  "B016DGF0ZY": { "sellerSku": "UNIC UC40 Projector 1080p", "finalName": "UNIC UC40 Projector 1080p" },
+  "B0BLNLYVFQ": { "sellerSku": "G5-MA5V-WDTH", "finalName": "G5-MA5V-WDTH" },
+  "B0DD6WNP26": { "sellerSku": "Helett HW10 wifi extender", "finalName": "Helett HW10 wifi extender" },
+  "B08LQ1G624": { "sellerSku": "UC46 projector", "finalName": "UC46 projector" },
+  "B0DPJ8BWCG": { "sellerSku": "Helett H92 TV Stick", "finalName": "Helett H92 TV Stick" },
+  "B0CXN44J7J": { "sellerSku": "helett H58i Bluetooth Printer FBA", "finalName": "H58i mini printer" },
+  "B0CNLW386T": { "sellerSku": "Helett HT15 wired Barcode Scanner FBA", "finalName": "Helett HT15 wired Barcode Scanner FBA" },
+  "B0D9LS2P2F": { "sellerSku": "Helett HL96 Hair Dryer FBA", "finalName": "Helett HL96 Hair Dryer" },
+  "B0DW8DX2M9": { "sellerSku": "Helett H30CLite Printer", "finalName": "H30c lite printer" },
+  "B013JYPTA4": { "sellerSku": "UC 40+ Projector 1325", "finalName": "UC 40+ Projector 1325" },
+  "B0BRKVYG8X": { "sellerSku": "2D-B2X1-4D6F", "finalName": "2D-B2X1-4D6F" },
+  "B07TB4DZTK": { "sellerSku": "RD-801 Projector", "finalName": "RD-801 Projector" },
+  "B0FSSL1Q2X": { "sellerSku": "Helett H30C Printer New FBA", "finalName": "H30c printer(Old)" },
+  "B0F8QKDJN3": { "sellerSku": "Helett Ht15e Desktop Barcode Scanner FBA", "finalName": "HT15E" },
+  "B0DJK3GNCY": { "sellerSku": "helett WS5", "finalName": "helett WS5" },
+  "B01DYJ8R4O": { "sellerSku": "UNIC UC30 PROJECTOR", "finalName": "UNIC UC30 PROJECTOR" },
+  "B0DW8PCP6D": { "sellerSku": "Helett 4x6 Thermal Label", "finalName": "Helett 4x6 Thermal Label" },
+  "B0D9KKFVT6": { "sellerSku": "UNIY UY720 Smart Door Lock FBA", "finalName": "UNIY UY720 Smart Door Lock FBA" },
+  "B0BL3LJHRB": { "sellerSku": "UY46 old", "finalName": "UY46 old" },
+  "B08FC23JD7": { "sellerSku": "UC20 projector", "finalName": "UC20 projector" },
+  "B0CZ99K438": { "sellerSku": "H80i Autocut Thermal Printer", "finalName": "H80i Autocut Thermal Printer" },
+  "B07T2VZMSG": { "sellerSku": "HTPHT580BLACK", "finalName": "HTPHT580BLACK" },
+  "B0DDL3TR1L": { "sellerSku": "helett HE24 Label Printer", "finalName": "HE24 mini printer" },
+  "B0CPDPTHVN": { "sellerSku": "Helett Ht20 Barcode Scanner", "finalName": "HT20 barcode" },
+  "B0D9KJJ7WF": { "sellerSku": "D8-ZNA6-NT4M", "finalName": "D8-ZNA6-NT4M" },
+  "B07FDG8GQT": { "sellerSku": "1UC46Projector", "finalName": "1UC46Projector" },
+  "B01H35Y352": { "sellerSku": "UC 30 Project 3", "finalName": "UC 30 Project 3" },
+  "B07MK547MK": { "sellerSku": "UC46 90", "finalName": "UC46 90" },
+  "B0GSZRF4M5": { "sellerSku": "Helett Z567 Tyre Inflator NEW", "finalName": "Helett Z567 Tyre Inflator NEW" },
+  "B0C3HZDJ5C": { "sellerSku": "ZT-NKSW-TLDE", "finalName": "ZT-NKSW-TLDE" },
+  "B0FL2VFCT9": { "sellerSku": "HE24 Thermal Label 12x50", "finalName": "HE24 Labell Roll (12x50)" },
+  "B0C96F68YL": { "sellerSku": "helett HT8400 car power inverter", "finalName": "helett HT8400 car power inverter" },
+  "B0D1P7SC46": { "sellerSku": "Helett H65C 2in1 Thermal Printer", "finalName": "Helett H65C 2in1 Thermal Printer" },
+  "B0BRXVQ85M": { "sellerSku": "UNIY UY20+ Mini Led projector", "finalName": "UNIY UY20+ Mini Led projector" },
+  "B0DTNVQ34H": { "sellerSku": "HE24 Label Tape", "finalName": "12x30 HE24 labels" },
+  "B0FLV3V1W4": { "sellerSku": "Helett H65Clite Printer", "finalName": "H65C Lite" },
+  "B0FZSCW83R": { "sellerSku": "Helett H75C Printer", "finalName": "H65C Mini Printer (New)" },
+  "B0BD9191XX": { "sellerSku": "UY400 mini Led Projector", "finalName": "UY400 mini Led Projector" },
+  "B0FGCT1MWB": { "sellerSku": "Helett Ht15 Desktop Barcode Scanner", "finalName": "HT15 wired desktop scanner" },
+  "B0DQGSMG4N": { "sellerSku": "Helett Label Paper 4x6", "finalName": "Helett Label Paper 4x6" },
+  "B091TCSG4D": { "sellerSku": "UNIY UY200", "finalName": "UNIY UY200" },
+  "B0CR75SMCQ": { "sellerSku": "H41", "finalName": "H41" },
+  "B07T85LWH7": { "sellerSku": "Yuntab 7 inch 3G Unlocked", "finalName": "Yuntab 7 inch 3G Unlocked" },
+  "B09TY1SZP6": { "sellerSku": "New UY46 FBA", "finalName": "New UY46 FBA" },
+  "B0DTQ3ZCBH": { "sellerSku": "HE24 Thermal Label Tape", "finalName": "15X50 HE24 labels" },
+  "B0DRL8ZDWX": { "sellerSku": "Helett H30C Lite Printer", "finalName": "Helett H30C Lite Printer" },
+  "B086ZFW6HD": { "sellerSku": "FILPO Soap Dispenser", "finalName": "FILPO Soap Dispenser" },
+  "B0BJMLX4RR": { "sellerSku": "UY10 Wired Mic", "finalName": "UY10 Wired Mic" },
+  "B0CQTK12SW": { "sellerSku": "Rice-Cooker-Black", "finalName": "Rice-Cooker-Black" },
+  "B0DQGQY98X": { "sellerSku": "Helett HE760 Mobile Printer", "finalName": "Helett HE760 Mobile Printer" },
+  "B09K4M1JSN": { "sellerSku": "UNIY UY 46 Projector", "finalName": "UNIY UY 46 Projector" },
+  "B0D9T8R3W8": { "sellerSku": "Helett H01 Label Holder FBA", "finalName": "H01 Label Holder" },
+  "B09TWLRXZ3": { "sellerSku": "UNIY A1 128 GB SdCard", "finalName": "UNIY A1 128 GB SdCard" },
+  "B0FKZPDH66": { "sellerSku": "Helett H30C Pro Printer", "finalName": "H30C pro Aiyin" },
+  "B07Q5PC3SV": { "sellerSku": "UC 40+ Projector", "finalName": "UC 40+ Projector" },
+  "B0F6MXY655": { "sellerSku": "HT20proL Wirelss Barcode Scanner MFN", "finalName": "HT20proL Wirelss Barcode Scanner MFN" },
+  "B0BRN9ZGL1": { "sellerSku": "UY-TTH9-BCAS", "finalName": "UY-TTH9-BCAS" },
+  "B0BLV54ZQK": { "sellerSku": "UY 14 UHF Wireless MIC", "finalName": "UY 14 wireless mic" },
+  "B0CC8ZFPRX": { "sellerSku": "HT510 Barcode Scanner", "finalName": "HT510 Barcode Scanner" },
+  "B0DD7RS56N": { "sellerSku": "Helett Z567 Tyre Inflator FBA", "finalName": "Helett Z567 Tyre Inflator FBA" },
+  "B0CB8X5RCN": { "sellerSku": "UNIY UY85 kids smart watch", "finalName": "UNIY UY85 kids smart watch" },
+  "B0C8NNB48Z": { "sellerSku": "UY510 Barcode Scanner", "finalName": "UY510 Barcode Scanner" },
+  "B08PSLZYZV": { "sellerSku": "UC20 mini projector", "finalName": "UC20 mini projector" },
+  "B0DBCW1PS4": { "sellerSku": "UNIY UY720 Smartdoor Lock FBA", "finalName": "UY720 door lock" },
+  "B0CQM5THV3": { "sellerSku": "ECO- D3-BT", "finalName": "BT Sound bar" },
+  "B0GDKY6QHN": { "sellerSku": "Helett infiStick android stick", "finalName": "Helett infiStick Tv Stick" },
+  "B0FGTMFZFM": { "sellerSku": "MO-DT5V-SO2M", "finalName": "MO-DT5V-SO2M" },
+  "B0DGCG6MN4": { "sellerSku": "Helett HE760 Receipt Printer FBA", "finalName": "Helett HE760 Receipt Printer FBA" },
+  "B0CR7JGRYJ": { "sellerSku": "SKU: OFFICE_LOCK_BLACK_30-100", "finalName": "SKU: OFFICE_LOCK_BLACK_30-100" },
+  "B0FHQSL9DH": { "sellerSku": "Helett H30CPro Printer", "finalName": "Helett H30CPro Printer" },
+  "B0CMMMJ5WY": { "sellerSku": "Helett HT35 Dual microphone", "finalName": "Helett HT35 Dual microphone" }
 };
 
 function resolveSkuName(asin, fallback) {
@@ -827,8 +468,6 @@ function resolveSkuName(asin, fallback) {
   if (entry && entry.sellerSku && entry.sellerSku.trim()) return entry.sellerSku.trim();
   return fallback || asin;
 }
-
-
 
 // ══════════════════════════════════════════
 // STATE
@@ -850,6 +489,53 @@ const toNum=v=>{if(v===''||v==null)return 0;const n=parseFloat(String(v).replace
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function dbg(...a){const s=a.join(' ');dbgLog.push(s);console.log('[INV]',s);}
 function step(s){const e=$('lstep');if(e)e.textContent=s;}
+
+// ══════════════════════════════════════════
+// EXCEL DOWNLOAD
+// ══════════════════════════════════════════
+function downloadExcel(){
+  if(!filteredRows||!filteredRows.length){alert('No data to export.');return;}
+
+  // Build clean rows for export — plain text status flags instead of badge HTML
+  const exportData = filteredRows.map(r => {
+    const flags = r.issues && r.issues.length
+      ? r.issues.map(i => i.label).join(', ')
+      : 'OK';
+    return {
+      'SKU':             r.sku,
+      'ASIN':            r.asin,
+      'FC Sellable':     r.fc_sellable,
+      'FC Unsellable':   r.fc_unsellable,
+      'FBA Available':   r.fba_available,
+      'FBA Unsellable':  r.fba_unsellable,
+      'Total Sellable':  r.total,
+      'Status Flags':    flags
+    };
+  });
+
+  const ws = XLSX.utils.json_to_sheet(exportData);
+
+  // Column widths
+  ws['!cols'] = [
+    {wch:40}, // SKU
+    {wch:16}, // ASIN
+    {wch:14}, // FC Sellable
+    {wch:16}, // FC Unsellable
+    {wch:15}, // FBA Available
+    {wch:16}, // FBA Unsellable
+    {wch:15}, // Total
+    {wch:35}, // Status
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+
+  // Filename: Helett_Inventory_YYYY-MM-DD.xlsx
+  const today = new Date().toISOString().slice(0,10);
+  const filename = `Helett_Inventory_${today}.xlsx`;
+
+  XLSX.writeFile(wb, filename);
+}
 
 // ══════════════════════════════════════════
 // FETCH
@@ -877,7 +563,6 @@ function findSheet(wb,name){
 function sheetToRows(ws){
   if(!ws||!ws['!ref'])return[];
   const range=XLSX.utils.decode_range(ws['!ref']);
-  // Find header row: first row containing "asin" or "sku"
   let hRow=range.s.r;
   outer:for(let r=range.s.r;r<=Math.min(range.s.r+8,range.e.r);r++){
     for(let c=range.s.c;c<=range.e.c;c++){
@@ -931,7 +616,6 @@ function detectCol(headers,patterns){
 function mergeData(sell,unsell,fba){
   step('Merging by ASIN…');
 
-  // FC Sellable columns
   const sh=sell.length?Object.keys(sell[0]):[];
   const sc={
     asin: detectCol(sh,['asin']),
@@ -940,45 +624,16 @@ function mergeData(sell,unsell,fba){
   };
   dbg('FCsell cols → asin:',sc.asin,'sku:',sc.sku,'qty:',sc.qty);
 
-  // FC Unsellable columns
   const uh=unsell.length?Object.keys(unsell[0]):[];
   const uc={
     asin: detectCol(uh,['asin']),
     sku:  detectCol(uh,['sku','msku','sellersku']),
   };
   const skipU=new Set([uc.asin,uc.sku].filter(Boolean));
-  // Detect only date-like columns
-const dateCols = uh.filter(h => {
-  if (skipU.has(h) || !h) return false;
-
-  const val = String(h).trim();
-
-  // Match formats like:
-  // 01-04-2026, 1/4/26, 2026-04-01 etc.
-  return /^\d{1,4}[-\/]\d{1,2}[-\/]\d{1,4}$/.test(val);
-});
-
-// Convert to actual dates and pick latest
-const skipU=new Set([uc.asin,uc.sku].filter(Boolean));
-
-// Detect only date-like columns
-const dateCols = uh.filter(h => {
-  if (skipU.has(h) || !h) return false;
-
-  const val = String(h).trim();
-  return /^\d{1,4}[-\/]\d{1,2}[-\/]\d{1,4}$/.test(val);
-});
-
-// ✅ Pick FIRST (leftmost) date column
-const lastDC = dateCols.length ? dateCols[0] : null;
-
-dbg('FCunsell cols → asin:',uc.asin,'lastDateCol:',lastDC);
+  const dateCols=uh.filter(h=>!skipU.has(h)&&h!=='');
+  const lastDC=dateCols.length?dateCols[dateCols.length-1]:null;
   dbg('FCunsell cols → asin:',uc.asin,'lastDateCol:',lastDC);
 
-  // FBA columns — supports two formats:
-  // Format A (condition-code rows): "Warehouse-Condition-code" + "Quantity Available"
-  //   Each ASIN appears multiple times, once per condition (SELLABLE / UNSELLABLE)
-  // Format B (classic report): single row per ASIN with separate avail/unsell columns
   const fh=fba.length?Object.keys(fba[0]):[];
   const fc={
     asin:      detectCol(fh,['asin']),
@@ -992,7 +647,6 @@ dbg('FCunsell cols → asin:',uc.asin,'lastDateCol:',lastDC);
 
   if(!fc.asin)throw new Error('ASIN column not found in FBA sheet.\nHeaders: '+fh.join(', '));
 
-  // Build FC Sellable map
   const sellMap=new Map(),sellSku=new Map();
   if(sc.asin&&sc.qty){
     for(const row of sell){
@@ -1005,9 +659,7 @@ dbg('FCunsell cols → asin:',uc.asin,'lastDateCol:',lastDC);
   } else {
     dbg('WARNING: FC Sellable qty column not found. FC Sellable will be 0.');
   }
-  dbg('FCsell map size:',sellMap.size,'sample:',JSON.stringify([...sellMap.entries()].slice(0,3)));
 
-  // Build FC Unsellable map
   const unMap=new Map();
   if(uc.asin&&lastDC){
     for(const row of unsell){
@@ -1018,14 +670,12 @@ dbg('FCunsell cols → asin:',uc.asin,'lastDateCol:',lastDC);
   } else {
     dbg('WARNING: FC Unsellable ASIN or date column not found. FC Unsellable will be 0.');
   }
-  dbg('FCunsell map size:',unMap.size,'sample:',JSON.stringify([...unMap.entries()].slice(0,3)));
 
-  // ── Build FBA map (grouped by ASIN, handles both formats) ──
   const fbaAvailMap=new Map(), fbaUnsellMap=new Map(), fbaSkuMap=new Map();
   const useConditionFormat = !!(fc.condition && fc.qty);
 
   if(useConditionFormat){
-    dbg('FBA format: condition-code rows (Warehouse-Condition-code + Quantity Available)');
+    dbg('FBA format: condition-code rows');
     for(const row of fba){
       const asin=norm(row[fc.asin]);
       if(!asin||asin==='-'||asin==='ASIN')continue;
@@ -1036,7 +686,6 @@ dbg('FCunsell cols → asin:',uc.asin,'lastDateCol:',lastDC);
       if(condition==='SELLABLE'){
         fbaAvailMap.set(asin,(fbaAvailMap.get(asin)||0)+qty);
       } else {
-        // UNSELLABLE + CARRIER_DAMAGED + CUSTOMER_DAMAGED + DEFECTIVE etc.
         fbaUnsellMap.set(asin,(fbaUnsellMap.get(asin)||0)+qty);
       }
     }
@@ -1051,9 +700,7 @@ dbg('FCunsell cols → asin:',uc.asin,'lastDateCol:',lastDC);
       fbaUnsellMap.set(asin,(fbaUnsellMap.get(asin)||0)+toNum(fc.unsell?row[fc.unsell]:0));
     }
   }
-  dbg('FBA avail map:',fbaAvailMap.size,'unsell map:',fbaUnsellMap.size);
 
-  // ── Merge all ASINs ──
   const merged=[];
   const fbaSet=new Set([...fbaAvailMap.keys(),...fbaUnsellMap.keys(),...fbaSkuMap.keys()]);
 
@@ -1069,7 +716,6 @@ dbg('FCunsell cols → asin:',uc.asin,'lastDateCol:',lastDC);
     merged.push({sku,asin,fc_sellable:hasFCMatch?fcSell:0,fc_unsellable:hasFCMatch?fcUnsell:0,fba_available:fbaAvail,fba_unsellable:fbaUnsell,total,hasFCMatch,source:'fba',issues,issue_count:issues.length});
   }
 
-  // FC-only rows — ASINs in FC sheets but not in FBA at all
   const allFCAsins=new Set([...sellMap.keys(),...unMap.keys()]);
   for(const asin of allFCAsins){
     if(fbaSet.has(asin))continue;
@@ -1081,7 +727,7 @@ dbg('FCunsell cols → asin:',uc.asin,'lastDateCol:',lastDC);
     merged.push({sku,asin,fc_sellable:fcSell,fc_unsellable:fcUnsell,fba_available:0,fba_unsellable:0,total,hasFCMatch:true,source:'fc',issues,issue_count:issues.length});
   }
 
-  dbg('Merged:',merged.length,'FC-matched:',merged.filter(r=>r.hasFCMatch).length,'Mismatch:',merged.filter(r=>!r.hasFCMatch&&r.source==='fba').length,'FC-only:',merged.filter(r=>r.source==='fc').length);
+  dbg('Merged:',merged.length);
   return merged;
 }
 
@@ -1195,7 +841,6 @@ function renderTable(rows){
     </tr>`;
   }).join('');
 
-  // Touch tooltips
   tbody.querySelectorAll('.th').forEach(el=>{
     el.addEventListener('click',e=>{
       e.stopPropagation();
@@ -1215,7 +860,6 @@ function badgeHtml(r){
     </span>`).join('')+'</div>';
 }
 
-// Global click dismissal
 document.addEventListener('click',()=>document.querySelectorAll('.th.to').forEach(x=>x.classList.remove('to')));
 
 // ══════════════════════════════════════════
@@ -1269,6 +913,7 @@ async function boot(){
     const ab=await fetchData();
     const{sell,unsell,fba}=parseSheets(ab);
     allRows=mergeData(sell,unsell,fba);
+    filteredRows=[...allRows];
     renderKPIs(allRows);
     renderCharts(allRows);
     applyFilters();
