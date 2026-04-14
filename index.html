@@ -28,6 +28,7 @@
   --red:        #ef4444;
   --blue:       #38bdf8;
   --purple:     #a78bfa;
+  --teal:       #14b8a6;
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -79,15 +80,20 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .kpi.co::after{background:linear-gradient(90deg,#f59e0b,#fbbf24);}
 .kpi.cp::after{background:linear-gradient(90deg,#a78bfa,#c4b5fd);}
 .kpi.cr::after{background:linear-gradient(90deg,#ef4444,#f87171);}
+.kpi.ct::after{background:linear-gradient(90deg,#14b8a6,#5eead4);}
 .kpi-lbl{font-size:.63rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin-bottom:10px;}
 .kpi-val{font-size:1.75rem;font-weight:800;line-height:1;letter-spacing:-.02em;}
 .kpi.ci .kpi-val{color:#818cf8;}.kpi.cg .kpi-val{color:#4ade80;}.kpi.cb .kpi-val{color:#7dd3fc;}
 .kpi.co .kpi-val{color:#fbbf24;}.kpi.cp .kpi-val{color:#c4b5fd;}.kpi.cr .kpi-val{color:#f87171;}
+.kpi.ct .kpi-val{color:#5eead4;}
 .kpi-sub{font-size:.67rem;color:var(--text3);margin-top:6px;font-family:'IBM Plex Mono',monospace;}
 
 /* CHARTS ROW */
-.charts-row{display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:22px;}
+.charts-row{display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:16px;}
 @media(max-width:900px){.charts-row{grid-template-columns:1fr;}}
+/* COST CHARTS ROW */
+.cost-charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px;}
+@media(max-width:900px){.cost-charts-row{grid-template-columns:1fr;}}
 .chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;}
 .chart-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
 .chart-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);}
@@ -123,7 +129,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .chip.b{background:#041c2e;border-color:var(--blue);color:var(--blue);}
 .rbadge{height:30px;padding:0 10px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;font-family:'IBM Plex Mono',monospace;font-size:.69rem;color:var(--text3);display:flex;align-items:center;}
 
-/* ── DOWNLOAD BUTTON ── */
+/* DOWNLOAD BUTTON */
 .btn-dl{
   height:30px;padding:0 12px;
   background:linear-gradient(135deg,rgba(34,197,94,.15),rgba(34,197,94,.08));
@@ -138,11 +144,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   white-space:nowrap;
   flex-shrink:0;
 }
-.btn-dl:hover{
-  background:linear-gradient(135deg,rgba(34,197,94,.25),rgba(34,197,94,.14));
-  border-color:rgba(34,197,94,.6);
-  color:#86efac;
-}
+.btn-dl:hover{background:linear-gradient(135deg,rgba(34,197,94,.25),rgba(34,197,94,.14));border-color:rgba(34,197,94,.6);color:#86efac;}
 .btn-dl:active{transform:scale(.97);}
 .btn-dl svg{flex-shrink:0;}
 
@@ -152,7 +154,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 table{width:100%;border-collapse:collapse;font-size:.77rem;}
 thead{position:sticky;top:0;z-index:20;}
 thead tr{background:var(--bg2);border-bottom:1px solid var(--border2);}
-th{padding:10px 14px;text-align:left;font-size:.61rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);white-space:nowrap;cursor:pointer;user-select:none;transition:color .15s;border-right:1px solid var(--border);}
+th{padding:10px 10px;text-align:left;font-size:.61rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);white-space:nowrap;cursor:pointer;user-select:none;transition:color .15s;border-right:1px solid var(--border);}
 th:last-child{border-right:none;}
 th:hover{color:var(--text2);}
 th.srt{color:var(--accent2);}
@@ -161,10 +163,13 @@ th.srt{color:var(--accent2);}
 th.srt .sarr{opacity:1;color:var(--accent2);}
 th.nc{text-align:right;}
 th.nc .thi{justify-content:flex-end;}
+/* Compact numeric columns */
+th.compact{width:1%;padding:10px 8px;}
 tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
 tbody tr:last-child{border-bottom:none;}
 tbody tr:hover{background:var(--card2);}
-td{padding:9px 14px;border-right:1px solid var(--border);vertical-align:middle;white-space:nowrap;}
+td{padding:9px 10px;border-right:1px solid var(--border);vertical-align:middle;white-space:nowrap;}
+td.compact{padding:9px 8px;}
 td:last-child{border-right:none;}
 .td-sku{font-family:'IBM Plex Mono',monospace;font-size:.71rem;font-weight:500;color:var(--text2);max-width:155px;overflow:hidden;text-overflow:ellipsis;}
 .td-asin{font-family:'IBM Plex Mono',monospace;font-size:.71rem;font-weight:500;color:var(--blue);letter-spacing:.02em;}
@@ -174,6 +179,8 @@ td:last-child{border-right:none;}
 .n.w{color:var(--orange);}
 .ntot{font-family:'IBM Plex Mono',monospace;font-weight:700;text-align:right;color:#4ade80;background:rgba(34,197,94,.05);}
 .ntot.low{color:var(--orange);background:rgba(245,158,11,.06);}
+.td-cost{font-family:'IBM Plex Mono',monospace;font-weight:600;text-align:right;color:#5eead4;}
+.td-cost.z{color:var(--text3);}
 .td-st{min-width:80px;}
 
 /* BADGES + TOOLTIPS */
@@ -235,9 +242,10 @@ td:last-child{border-right:none;}
     <div class="kpi cp"><div class="kpi-lbl">Total Unsellable</div><div class="kpi-val" id="k3">—</div><div class="kpi-sub">FC + FBA unsellable</div></div>
     <div class="kpi co"><div class="kpi-lbl">Low Stock SKUs</div><div class="kpi-val" id="k4">—</div><div class="kpi-sub">Total sellable &lt; 50</div></div>
     <div class="kpi cr"><div class="kpi-lbl">Flagged SKUs</div><div class="kpi-val" id="k5">—</div><div class="kpi-sub">Rows with any issue</div></div>
+    <div class="kpi ct"><div class="kpi-lbl">Total Inventory Cost</div><div class="kpi-val" id="k6">—</div><div class="kpi-sub">Cost × total sellable</div></div>
   </div>
 
-  <!-- Charts -->
+  <!-- Stock Charts -->
   <div class="charts-row">
     <div class="chart-card">
       <div class="chart-hd">
@@ -264,6 +272,26 @@ td:last-child{border-right:none;}
     </div>
   </div>
 
+  <!-- Cost Charts -->
+  <div class="cost-charts-row">
+    <div class="chart-card">
+      <div class="chart-hd">
+        <div class="chart-title">Inventory Cost by SKU (Top 15 — Cost × Qty)</div>
+      </div>
+      <div class="bar-wrap"><canvas id="ccostbar"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hd"><div class="chart-title">Cost Distribution (Top 10 by Cost/Unit)</div></div>
+      <div class="donut-outer">
+        <div class="donut-ring" style="width:180px;height:180px;">
+          <canvas id="ccostdonut" width="180" height="180"></canvas>
+          <div class="donut-ctr"><div class="dc-val" style="font-size:1.1rem;" id="dctotal">—</div><div class="dc-lbl">Total Cost</div></div>
+        </div>
+        <div class="dl" id="costdonutlegend" style="max-width:280px;gap:8px 14px;"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Table -->
   <div class="tbl-hd">
     <div style="display:flex;align-items:center;gap:10px;">
@@ -281,7 +309,6 @@ td:last-child{border-right:none;}
         <button class="chip" id="chhu" onclick="toggleChip('hu')">↑ High Unsellable</button>
         <button class="chip" id="chfo" onclick="toggleChip('fo')">◈ FC Only</button>
       </div>
-      <!-- ── DOWNLOAD BUTTON ── -->
       <button class="btn-dl" onclick="downloadExcel()" title="Download currently visible rows as Excel">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -300,11 +327,13 @@ td:last-child{border-right:none;}
           <tr>
             <th onclick="sortBy('sku')"><div class="thi">SKU<span class="sarr" data-col="sku">↕</span></div></th>
             <th onclick="sortBy('asin')"><div class="thi">ASIN<span class="sarr" data-col="asin">↕</span></div></th>
-            <th class="nc" onclick="sortBy('fc_sellable')"><div class="thi">FC Sellable<span class="sarr" data-col="fc_sellable">↕</span></div></th>
-            <th class="nc" onclick="sortBy('fc_unsellable')"><div class="thi">FC Unsellable<span class="sarr" data-col="fc_unsellable">↕</span></div></th>
-            <th class="nc" onclick="sortBy('fba_available')"><div class="thi">FBA Available<span class="sarr" data-col="fba_available">↕</span></div></th>
-            <th class="nc" onclick="sortBy('fba_unsellable')"><div class="thi">FBA Unsellable<span class="sarr" data-col="fba_unsellable">↕</span></div></th>
-            <th class="nc" onclick="sortBy('total')"><div class="thi">Total<span class="sarr" data-col="total">↕</span></div></th>
+            <th class="nc compact" onclick="sortBy('fc_sellable')"><div class="thi">FC Sell<span class="sarr" data-col="fc_sellable">↕</span></div></th>
+            <th class="nc compact" onclick="sortBy('fc_unsellable')"><div class="thi">FC Unsell<span class="sarr" data-col="fc_unsellable">↕</span></div></th>
+            <th class="nc compact" onclick="sortBy('fba_available')"><div class="thi">FBA Avail<span class="sarr" data-col="fba_available">↕</span></div></th>
+            <th class="nc compact" onclick="sortBy('fba_unsellable')"><div class="thi">FBA Unsell<span class="sarr" data-col="fba_unsellable">↕</span></div></th>
+            <th class="nc compact" onclick="sortBy('total')"><div class="thi">Total<span class="sarr" data-col="total">↕</span></div></th>
+            <th class="nc" onclick="sortBy('unit_cost')"><div class="thi">Unit Cost<span class="sarr" data-col="unit_cost">↕</span></div></th>
+            <th class="nc" onclick="sortBy('total_cost')"><div class="thi">Total Cost<span class="sarr" data-col="total_cost">↕</span></div></th>
             <th onclick="sortBy('issue_count')"><div class="thi">Status<span class="sarr" data-col="issue_count">↕</span></div></th>
           </tr>
         </thead>
@@ -326,6 +355,62 @@ td:last-child{border-right:none;}
 // ══════════════════════════════════════════
 const SHEET_URL="https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4/export?format=xlsx";
 const SH_SELL="Sellable_Inventory", SH_UN="Unsellable", SH_FBA="FBA_Inventory";
+
+// ══════════════════════════════════════════
+// COST MAP (₹ per unit, keyed by ASIN)
+// ══════════════════════════════════════════
+const COST_MAP = {
+  "B0FSSL1Q2X": 4864.07,
+  "B0BPHT9WY9": 2828.0,
+  "B0DQGQY98X": 941.8,
+  "B0FZSJRV5F": 1825.35,
+  "B0DLKM4N5G": 1227.75,
+  "B0CQM5THV3": 1059.47,
+  "B0F8QKDJN3": 1477.0,
+  "B0GPCQ9KLN": 3830.83,
+  "B0DKXD4N4R": 4529.89,
+  "B0DGF32QRT": 1018.37,
+  "B0F5Q4RV2R": 1339.0,
+  "B0FGCT1MWB": 1410.78,
+  "B0CJVGCB4K": 3333.34,
+  "B0D39NNN57": 1350.3,
+  "B0CR75SMCQ": 593.04,
+  "B0CN1153M4": 1224.55,
+  "B0CRB2KDC6": 1413.08,
+  "B0CBXG8CLB": 1815.27,
+  "B0CZ99K438": 1943.19,
+  "B0CBC9G7W2": 795.13,
+  "B0BFFW365Y": 2837.0,
+  "B0DDL3TR1L": 924.47,
+  "B0DRL8ZDWX": 2942.4,
+  "B0CPDPTHVN": 1126.75,
+  "B0CXN44J7J": 1033.54,
+  "B0C8JRN652": 2927.79,
+  "B0FHQSL9DH": 3740.06,
+  "B0DPCRLRNJ": 1347.23,
+  "B0D4F7Y3NZ": 1854.0,
+  "B0D9LS2P2F": 856.1,
+  "B0CLYLNCZD": 3556.78,
+  "B0FZL52KY4": 1354.03,
+  "B0DW8DX2M9": 2734.98,
+  "B0FZSCW83R": 1082.64,
+  "B0DBCW1PS4": 2233.25,
+  "B0G1YY4MJK": 861.26,
+  "B0FKZPDH66": 3252.79,
+  "B0DL5PXZ65": 3190.43,
+  "B0FLV3V1W4": 987.39,
+  "B0DPJ8BWCG": 1344.0,
+  "B0C72FSCFM": 757.24,
+  "B0DXKWKBWQ": 122.0,
+  "B0DW8PCP6D": 158.94,
+  "B0CHFQPZMK": 217.0,
+  "B0D1P7SC46": 1138.23,
+  "B0FL2VFCT9": 122.0,
+  "B0DXC17SSS": 122.0,
+  "B0DTNVQ34H": 92.83,
+  "B0D9T8R3W8": 132.64,
+  "B0D4F12NJT": 1.0
+};
 
 // ══════════════════════════════════════════
 // SKU MATCH MAP  (seller SKU names, keyed by ASIN)
@@ -350,7 +435,7 @@ const SKU_MAP = {
   "B0CL4GVKSN": { "sellerSku": "UNIY T10 Mini Projector", "finalName": "UNIY T10 Mini Projector" },
   "B0BFRS5BLT": { "sellerSku": "UY8401 Smart Digital Door Lock FBA", "finalName": "UY8401 Smart Digital Door Lock FBA" },
   "B0CB1DDNV7": { "sellerSku": "UY20 Streaming mic", "finalName": "UY20 Streaming mic" },
-  "B0CJVGCB4K": { "sellerSku": "helett L410 Thermal printer", "finalName": "H30c printer (New)" },
+  "B0CJVGCB4K": { "sellerSku": "H30c printer (White)", "finalName": "H30c printer (New)" },
   "B0CRB2KDC6": { "sellerSku": "HT320 Digital Door MFN", "finalName": "HT320 Smart lock" },
   "B01G46PYPO": { "sellerSku": "UC46 New Projector 12", "finalName": "UC46 New Projector 12" },
   "B0BZ8HF4WL": { "sellerSku": "UNIY UY410 Barcode Scanner", "finalName": "UNIY UY410 Barcode Scanner" },
@@ -475,7 +560,7 @@ function resolveSkuName(asin, fallback) {
 let allRows=[],filteredRows=[];
 let sortCol=null,sortDir=-1;
 let chips=new Set();
-let barChart=null,donutChart=null;
+let barChart=null,donutChart=null,costBarChart=null,costDonutChart=null;
 let dbgLog=[];
 
 // ══════════════════════════════════════════
@@ -487,6 +572,8 @@ const norm=v=>String(v??'').trim().toUpperCase();
 const str=v=>String(v??'').trim();
 const toNum=v=>{if(v===''||v==null)return 0;const n=parseFloat(String(v).replace(/,/g,''));return isNaN(n)?0:Math.round(n);};
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmtCur=v=>v>=1e6?'₹'+(v/1e5).toFixed(1)+'L':v>=1000?'₹'+(v/1000).toFixed(1)+'K':'₹'+v.toFixed(0);
+const fmtCurFull=v=>'₹'+v.toLocaleString('en-IN',{maximumFractionDigits:2});
 function dbg(...a){const s=a.join(' ');dbgLog.push(s);console.log('[INV]',s);}
 function step(s){const e=$('lstep');if(e)e.textContent=s;}
 
@@ -495,12 +582,8 @@ function step(s){const e=$('lstep');if(e)e.textContent=s;}
 // ══════════════════════════════════════════
 function downloadExcel(){
   if(!filteredRows||!filteredRows.length){alert('No data to export.');return;}
-
-  // Build clean rows for export — plain text status flags instead of badge HTML
   const exportData = filteredRows.map(r => {
-    const flags = r.issues && r.issues.length
-      ? r.issues.map(i => i.label).join(', ')
-      : 'OK';
+    const flags = r.issues && r.issues.length ? r.issues.map(i => i.label).join(', ') : 'OK';
     return {
       'SKU':             r.sku,
       'ASIN':            r.asin,
@@ -509,32 +592,17 @@ function downloadExcel(){
       'FBA Available':   r.fba_available,
       'FBA Unsellable':  r.fba_unsellable,
       'Total Sellable':  r.total,
+      'Unit Cost (₹)':   r.unit_cost > 0 ? r.unit_cost : '',
+      'Total Cost (₹)':  r.total_cost > 0 ? r.total_cost : '',
       'Status Flags':    flags
     };
   });
-
   const ws = XLSX.utils.json_to_sheet(exportData);
-
-  // Column widths
-  ws['!cols'] = [
-    {wch:40}, // SKU
-    {wch:16}, // ASIN
-    {wch:14}, // FC Sellable
-    {wch:16}, // FC Unsellable
-    {wch:15}, // FBA Available
-    {wch:16}, // FBA Unsellable
-    {wch:15}, // Total
-    {wch:35}, // Status
-  ];
-
+  ws['!cols'] = [{wch:40},{wch:16},{wch:12},{wch:14},{wch:13},{wch:14},{wch:10},{wch:14},{wch:16},{wch:35}];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
-
-  // Filename: Helett_Inventory_YYYY-MM-DD.xlsx
   const today = new Date().toISOString().slice(0,10);
-  const filename = `Helett_Inventory_${today}.xlsx`;
-
-  XLSX.writeFile(wb, filename);
+  XLSX.writeFile(wb, `Helett_Inventory_${today}.xlsx`);
 }
 
 // ══════════════════════════════════════════
@@ -589,9 +657,6 @@ function parseSheets(ab){
   const unsell=sheetToRows(wb.Sheets[uN]);
   const fba=sheetToRows(wb.Sheets[fN]);
   dbg('Rows → sell:',sell.length,'unsell:',unsell.length,'fba:',fba.length);
-  if(sell.length)  dbg('Sell cols:',  Object.keys(sell[0]).join(' | '));
-  if(unsell.length)dbg('Unsell cols:',Object.keys(unsell[0]).join(' | '));
-  if(fba.length)   dbg('FBA cols:',   Object.keys(fba[0]).join(' | '));
   return{sell,unsell,fba};
 }
 
@@ -611,7 +676,7 @@ function detectCol(headers,patterns){
 }
 
 // ══════════════════════════════════════════
-// MERGE — ASIN ONLY JOIN
+// MERGE
 // ══════════════════════════════════════════
 function mergeData(sell,unsell,fba){
   step('Merging by ASIN…');
@@ -622,7 +687,6 @@ function mergeData(sell,unsell,fba){
     sku:  detectCol(sh,['sku','msku','sellersku','merchantsku']),
     qty:  detectCol(sh,['sellable stock','sellablestock','sellable','sellableqty','availableqty','quantity','qty','stock','units','available']),
   };
-  dbg('FCsell cols → asin:',sc.asin,'sku:',sc.sku,'qty:',sc.qty);
 
   const uh=unsell.length?Object.keys(unsell[0]):[];
   const uc={
@@ -632,7 +696,6 @@ function mergeData(sell,unsell,fba){
   const skipU=new Set([uc.asin,uc.sku].filter(Boolean));
   const dateCols=uh.filter(h=>!skipU.has(h)&&h!=='');
   const lastDC=dateCols.length?dateCols[dateCols.length-1]:null;
-  dbg('FCunsell cols → asin:',uc.asin,'lastDateCol:',lastDC);
 
   const fh=fba.length?Object.keys(fba[0]):[];
   const fc={
@@ -643,7 +706,6 @@ function mergeData(sell,unsell,fba){
     avail:     detectCol(fh,['afnfulfillable','fulfillable','fulfillablequantity','afnavailablequantity']),
     unsell:    detectCol(fh,['afnunsellable','unsellablequantity','unfulfillable']),
   };
-  dbg('FBA cols → asin:',fc.asin,'sku:',fc.sku,'condition:',fc.condition,'qty:',fc.qty,'avail:',fc.avail,'unsell:',fc.unsell);
 
   if(!fc.asin)throw new Error('ASIN column not found in FBA sheet.\nHeaders: '+fh.join(', '));
 
@@ -656,8 +718,6 @@ function mergeData(sell,unsell,fba){
       const sku=str(row[sc.sku]||'');
       if(sku&&!sellSku.has(asin))sellSku.set(asin,sku);
     }
-  } else {
-    dbg('WARNING: FC Sellable qty column not found. FC Sellable will be 0.');
   }
 
   const unMap=new Map();
@@ -667,15 +727,12 @@ function mergeData(sell,unsell,fba){
       if(!asin||asin==='-'||asin==='ASIN')continue;
       unMap.set(asin,(unMap.get(asin)||0)+toNum(row[lastDC]));
     }
-  } else {
-    dbg('WARNING: FC Unsellable ASIN or date column not found. FC Unsellable will be 0.');
   }
 
   const fbaAvailMap=new Map(), fbaUnsellMap=new Map(), fbaSkuMap=new Map();
   const useConditionFormat = !!(fc.condition && fc.qty);
 
   if(useConditionFormat){
-    dbg('FBA format: condition-code rows');
     for(const row of fba){
       const asin=norm(row[fc.asin]);
       if(!asin||asin==='-'||asin==='ASIN')continue;
@@ -690,7 +747,6 @@ function mergeData(sell,unsell,fba){
       }
     }
   } else {
-    dbg('FBA format: classic single-row per ASIN');
     for(const row of fba){
       const asin=norm(row[fc.asin]);
       if(!asin||asin==='-'||asin==='ASIN')continue;
@@ -705,26 +761,30 @@ function mergeData(sell,unsell,fba){
   const fbaSet=new Set([...fbaAvailMap.keys(),...fbaUnsellMap.keys(),...fbaSkuMap.keys()]);
 
   for(const asin of fbaSet){
-    const sku       =resolveSkuName(asin, fbaSkuMap.get(asin)||'--');
-    const fbaAvail  =fbaAvailMap.get(asin)||0;
-    const fbaUnsell =fbaUnsellMap.get(asin)||0;
-    const hasFCMatch=sellMap.has(asin)||unMap.has(asin);
-    const fcSell    =sellMap.get(asin)??0;
-    const fcUnsell  =unMap.get(asin)??0;
-    const total     =(hasFCMatch?fcSell:0)+fbaAvail;
-    const issues    =buildIssues({hasFCMatch,isFCOnly:false,fcSell,fbaAvail,fcUnsell,fbaUnsell:fbaUnsell,total});
-    merged.push({sku,asin,fc_sellable:hasFCMatch?fcSell:0,fc_unsellable:hasFCMatch?fcUnsell:0,fba_available:fbaAvail,fba_unsellable:fbaUnsell,total,hasFCMatch,source:'fba',issues,issue_count:issues.length});
+    const sku        = resolveSkuName(asin, fbaSkuMap.get(asin)||'--');
+    const fbaAvail   = fbaAvailMap.get(asin)||0;
+    const fbaUnsell  = fbaUnsellMap.get(asin)||0;
+    const hasFCMatch = sellMap.has(asin)||unMap.has(asin);
+    const fcSell     = sellMap.get(asin)??0;
+    const fcUnsell   = unMap.get(asin)??0;
+    const total      = (hasFCMatch?fcSell:0)+fbaAvail;
+    const unit_cost  = COST_MAP[asin]||0;
+    const total_cost = unit_cost * total;
+    const issues     = buildIssues({hasFCMatch,isFCOnly:false,fcSell,fbaAvail,fcUnsell,fbaUnsell,total});
+    merged.push({sku,asin,fc_sellable:hasFCMatch?fcSell:0,fc_unsellable:hasFCMatch?fcUnsell:0,fba_available:fbaAvail,fba_unsellable:fbaUnsell,total,unit_cost,total_cost,hasFCMatch,source:'fba',issues,issue_count:issues.length});
   }
 
   const allFCAsins=new Set([...sellMap.keys(),...unMap.keys()]);
   for(const asin of allFCAsins){
     if(fbaSet.has(asin))continue;
-    const fcSell  =sellMap.get(asin)??0;
-    const fcUnsell=unMap.get(asin)??0;
-    const sku     =resolveSkuName(asin, sellSku.get(asin)||'--');
-    const total   =fcSell;
-    const issues  =buildIssues({hasFCMatch:true,isFCOnly:true,fcSell,fbaAvail:0,fcUnsell,fbaUnsell:0,total});
-    merged.push({sku,asin,fc_sellable:fcSell,fc_unsellable:fcUnsell,fba_available:0,fba_unsellable:0,total,hasFCMatch:true,source:'fc',issues,issue_count:issues.length});
+    const fcSell   = sellMap.get(asin)??0;
+    const fcUnsell = unMap.get(asin)??0;
+    const sku      = resolveSkuName(asin, sellSku.get(asin)||'--');
+    const total    = fcSell;
+    const unit_cost  = COST_MAP[asin]||0;
+    const total_cost = unit_cost * total;
+    const issues   = buildIssues({hasFCMatch:true,isFCOnly:true,fcSell,fbaAvail:0,fcUnsell,fbaUnsell:0,total});
+    merged.push({sku,asin,fc_sellable:fcSell,fc_unsellable:fcUnsell,fba_available:0,fba_unsellable:0,total,unit_cost,total_cost,hasFCMatch:true,source:'fc',issues,issue_count:issues.length});
   }
 
   dbg('Merged:',merged.length);
@@ -767,12 +827,16 @@ function renderKPIs(rows){
   set('k3',rows.reduce((s,r)=>s+r.fc_unsellable+r.fba_unsellable,0).toLocaleString());
   set('k4',rows.filter(r=>r.total>=0&&r.total<50).length.toLocaleString());
   set('k5',rows.filter(r=>r.issue_count>0).length.toLocaleString());
+  const totalCost = rows.reduce((s,r)=>s+r.total_cost,0);
+  set('k6', fmtCur(totalCost));
+  $('k6').title = fmtCurFull(totalCost);
 }
 
 // ══════════════════════════════════════════
 // CHARTS
 // ══════════════════════════════════════════
 function renderCharts(rows){
+  // Stock bar chart
   const top15=[...rows].filter(r=>r.fc_sellable>0||r.fba_available>0).sort((a,b)=>(b.fc_sellable+b.fba_available)-(a.fc_sellable+a.fba_available)).slice(0,15);
   const labels=top15.map(r=>{const s=str(r.sku);return s.length>16?s.slice(0,15)+'…':s;});
 
@@ -797,6 +861,7 @@ function renderCharts(rows){
     }
   });
 
+  // Unsellable donut
   const fcUn=rows.reduce((s,r)=>s+r.fc_unsellable,0);
   const fbaUn=rows.reduce((s,r)=>s+r.fba_unsellable,0);
   const grand=fcUn+fbaUn;
@@ -814,6 +879,75 @@ function renderCharts(rows){
     },
     options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},tooltip:{enabled:hasD,backgroundColor:'#0a0b10',borderColor:'#2a2d3e',borderWidth:1,titleColor:'#e8eaf6',bodyColor:'#9395a5',padding:10}}}
   });
+
+  // ── COST BAR CHART (Top 15 by total inventory cost) ──
+  const costRows = [...rows].filter(r=>r.total_cost>0).sort((a,b)=>b.total_cost-a.total_cost).slice(0,15);
+  const costLabels = costRows.map(r=>{const s=str(r.sku);return s.length>16?s.slice(0,15)+'…':s;});
+
+  if(costBarChart)costBarChart.destroy();
+  costBarChart=new Chart($('ccostbar').getContext('2d'),{
+    type:'bar',
+    data:{labels:costLabels,datasets:[{
+      label:'Total Cost (₹)',
+      data:costRows.map(r=>r.total_cost),
+      backgroundColor:'rgba(20,184,166,0.75)',
+      borderColor:'#14b8a6',
+      borderWidth:1,borderRadius:4,borderSkipped:false
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{backgroundColor:'#0a0b10',borderColor:'#2a2d3e',borderWidth:1,titleColor:'#e8eaf6',bodyColor:'#9395a5',padding:10,
+          callbacks:{
+            title:items=>costRows[items[0].dataIndex].sku,
+            label:items=>`₹${items.raw.toLocaleString('en-IN',{maximumFractionDigits:0})} (${costRows[items.dataIndex].total} units × ₹${costRows[items.dataIndex].unit_cost.toLocaleString('en-IN')})`
+          }
+        },
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5f6170',font:{size:10,family:'IBM Plex Mono'},maxRotation:35}},
+        y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#5f6170',font:{size:10,family:'IBM Plex Mono'},callback:v=>fmtCur(v)}},
+      }
+    }
+  });
+
+  // ── COST DONUT (Top 10 by unit cost, % of total portfolio cost) ──
+  const top10cost = [...rows].filter(r=>r.unit_cost>0).sort((a,b)=>b.unit_cost-a.unit_cost).slice(0,10);
+  const totalPortfolioCost = rows.reduce((s,r)=>s+r.total_cost,0);
+  set('dctotal', fmtCur(totalPortfolioCost));
+
+  const donutColors = ['#14b8a6','#6366f1','#f59e0b','#38bdf8','#a78bfa','#22c55e','#ef4444','#fb923c','#e879f9','#64748b'];
+
+  if(costDonutChart)costDonutChart.destroy();
+  const hasCost = top10cost.some(r=>r.total_cost>0);
+  costDonutChart=new Chart($('ccostdonut').getContext('2d'),{
+    type:'doughnut',
+    data:{
+      labels:top10cost.map(r=>r.sku),
+      datasets:[{
+        data:hasCost?top10cost.map(r=>r.total_cost>0?r.total_cost:0.001):[1],
+        backgroundColor:hasCost?donutColors.slice(0,top10cost.length):['rgba(60,63,90,0.4)'],
+        borderColor:'#1e2130',borderWidth:2,hoverOffset:6
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{
+      legend:{display:false},
+      tooltip:{enabled:hasCost,backgroundColor:'#0a0b10',borderColor:'#2a2d3e',borderWidth:1,titleColor:'#e8eaf6',bodyColor:'#9395a5',padding:10,
+        callbacks:{
+          label:ctx=>`₹${ctx.raw.toLocaleString('en-IN',{maximumFractionDigits:0})} (${totalPortfolioCost>0?Math.round(ctx.raw/totalPortfolioCost*100):0}%)`
+        }
+      }
+    }}
+  });
+
+  // Legend for cost donut
+  const leg = $('costdonutlegend');
+  leg.innerHTML = top10cost.map((r,i)=>`
+    <div class="dl-item">
+      <div class="dl-sw" style="background:${donutColors[i]}"></div>
+      <span style="font-size:.63rem;color:var(--text2);">${r.sku.length>18?r.sku.slice(0,17)+'…':r.sku}</span>
+    </div>`).join('');
 }
 
 // ══════════════════════════════════════════
@@ -824,19 +958,27 @@ function renderTable(rows){
   set('rbadge',`${rows.length.toLocaleString()} rows`);
   set('tfc',`Showing ${rows.length.toLocaleString()} of ${allRows.length.toLocaleString()} entries`);
   if(!rows.length){
-    tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="ei">📦</div><p>No rows match the current filter.</p></div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="10"><div class="empty"><div class="ei">📦</div><p>No rows match the current filter.</p></div></td></tr>`;
     return;
   }
   tbody.innerHTML=rows.map(r=>{
     const tc=r.total<50&&r.total>=0?'ntot low':'ntot';
+    const unitCostHtml = r.unit_cost>0
+      ? `<td class="td-cost compact">${fmtCurFull(r.unit_cost)}</td>`
+      : `<td class="td-cost z compact">—</td>`;
+    const totalCostHtml = r.total_cost>0
+      ? `<td class="td-cost">${fmtCurFull(r.total_cost)}</td>`
+      : `<td class="td-cost z">—</td>`;
     return `<tr>
       <td class="td-sku" title="${esc(r.sku)}">${esc(r.sku)}</td>
       <td class="td-asin">${esc(r.asin)}</td>
-      <td class="n ${r.fc_sellable>0?'g':r.fc_sellable===0?'z':''}">${r.fc_sellable.toLocaleString()}</td>
-      <td class="n ${r.fc_unsellable>0?'w':'z'}">${r.fc_unsellable.toLocaleString()}</td>
-      <td class="n ${r.fba_available>0?'g':'z'}">${r.fba_available.toLocaleString()}</td>
-      <td class="n ${r.fba_unsellable>0?'w':'z'}">${r.fba_unsellable.toLocaleString()}</td>
-      <td class="${tc}">${r.total.toLocaleString()}</td>
+      <td class="n compact ${r.fc_sellable>0?'g':r.fc_sellable===0?'z':''}">${r.fc_sellable.toLocaleString()}</td>
+      <td class="n compact ${r.fc_unsellable>0?'w':'z'}">${r.fc_unsellable.toLocaleString()}</td>
+      <td class="n compact ${r.fba_available>0?'g':'z'}">${r.fba_available.toLocaleString()}</td>
+      <td class="n compact ${r.fba_unsellable>0?'w':'z'}">${r.fba_unsellable.toLocaleString()}</td>
+      <td class="${tc} compact">${r.total.toLocaleString()}</td>
+      ${unitCostHtml}
+      ${totalCostHtml}
       <td class="td-st">${badgeHtml(r)}</td>
     </tr>`;
   }).join('');
@@ -941,7 +1083,7 @@ boot();
 </script>
 
 <footer style="text-align:center;padding:18px 0 22px;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:#3a3d50;letter-spacing:0.06em;">
-  Designed and Developed by Amal Helett - 2025 Inventory Intelligence. 
+  Designed and Developed by Amal Helett - 2026 Inventory Intelligence.
 </footer>
 </body>
 </html>
