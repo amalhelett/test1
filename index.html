@@ -364,7 +364,7 @@ const COST_MAP = {
   "B0BPHT9WY9": 2828.0,
   "B0DQGQY98X": 941.8,
   "B0FZSJRV5F": 1825.35,
-  "B0GSZRF4M5": 1227.75,
+  "B0DLKM4N5G": 1227.75,
   "B0CQM5THV3": 1059.47,
   "B0F8QKDJN3": 1477.0,
   "B0GPCQ9KLN": 3830.83,
@@ -391,7 +391,7 @@ const COST_MAP = {
   "B0D4F7Y3NZ": 1854.0,
   "B0D9LS2P2F": 856.1,
   "B0CLYLNCZD": 3556.78,
-  "B0GDKY6QHN": 1354.03,
+  "B0FZL52KY4": 1354.03,
   "B0DW8DX2M9": 2734.98,
   "B0FZSCW83R": 1082.64,
   "B0DBCW1PS4": 2233.25,
@@ -572,7 +572,7 @@ const norm=v=>String(v??'').trim().toUpperCase();
 const str=v=>String(v??'').trim();
 const toNum=v=>{if(v===''||v==null)return 0;const n=parseFloat(String(v).replace(/,/g,''));return isNaN(n)?0:Math.round(n);};
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const fmtCur=v=>v>=1e6?'₹'+(v/1e5).toFixed(1)+'L':v>=1000?'₹'+(v/1000).toFixed(1)+'K':'₹'+v.toFixed(0);
+const fmtCur=v=>v>=1e6?'₹ '+(v/1e5).toFixed(1)+'L':v>=1000?'₹ '+(v/1000).toFixed(1)+'K':'₹ '+v.toFixed(0);
 const fmtCurFull=v=>'₹'+v.toLocaleString('en-IN',{maximumFractionDigits:2});
 function dbg(...a){const s=a.join(' ');dbgLog.push(s);console.log('[INV]',s);}
 function step(s){const e=$('lstep');if(e)e.textContent=s;}
@@ -901,7 +901,7 @@ function renderCharts(rows){
         tooltip:{backgroundColor:'#0a0b10',borderColor:'#2a2d3e',borderWidth:1,titleColor:'#e8eaf6',bodyColor:'#9395a5',padding:10,
           callbacks:{
             title:items=>costRows[items[0].dataIndex].sku,
-            label:items=>`₹ ${items.raw.toLocaleString('en-IN',{maximumFractionDigits:0})} (${costRows[items.dataIndex].total} units × ₹ ${costRows[items.dataIndex].unit_cost.toLocaleString('en-IN')})`
+            label:items=>`₹${items.raw.toLocaleString('en-IN',{maximumFractionDigits:0})} (${costRows[items.dataIndex].total} units × ₹${costRows[items.dataIndex].unit_cost.toLocaleString('en-IN')})`
           }
         },
       },
