@@ -181,11 +181,11 @@ td:last-child{border-right:none;}
 .ntot.low{color:var(--orange);background:rgba(245,158,11,.06);}
 .td-cost{font-family:'IBM Plex Mono',monospace;font-weight:600;text-align:right;color:#5eead4;}
 .td-cost.z{color:var(--text3);}
-.td-st{min-width:80px;}
+.td-st{width:1%;white-space:nowrap;}
 
 /* BADGES + TOOLTIPS */
 .iw{display:flex;gap:4px;flex-wrap:wrap;}
-.ibadge{display:inline-flex;align-items:center;gap:3px;border-radius:5px;padding:2px 7px;font-size:.61rem;font-weight:700;cursor:default;position:relative;white-space:nowrap;}
+.ibadge{display:inline-flex;align-items:center;justify-content:center;border-radius:5px;padding:2px 5px;font-size:.72rem;font-weight:700;cursor:default;position:relative;white-space:nowrap;min-width:22px;}
 .ibadge.mm{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:var(--red);}
 .ibadge.ls{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:var(--orange);}
 .ibadge.hu{background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);color:var(--purple);}
@@ -997,7 +997,7 @@ function badgeHtml(r){
   if(!r.issues||!r.issues.length)return '';
   return '<div class="iw">'+r.issues.map(iss=>`
     <span class="th" tabindex="0">
-      <span class="ibadge ${iss.type}">${iss.type==='mm'?'⚠':iss.type==='fo'?'◈':iss.type==='ls'?'↓':'↑'} ${esc(iss.label)}</span>
+      <span class="ibadge ${iss.type}">${iss.type==='mm'?'⚠':iss.type==='fo'?'◈':iss.type==='ls'?'↓':'↑'}</span>
       <div class="tb"><div class="tb-t">${esc(iss.label)}</div>${esc(iss.msg)}</div>
     </span>`).join('')+'</div>';
 }
