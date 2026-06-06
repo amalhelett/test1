@@ -703,13 +703,20 @@ async function fetchReservedMap(){
     if(!r.ok){dbg('Reserved sheet HTTP',r.status);return new Map();}
     const text=await r.text();
     const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
-    // lines[0] = sheet row 1 (title/blank), lines[1] = row 2 (headers), lines[2+] = data
+    // Auto-detect header row (contains 'ASIN'), then find col indices by name
+    const headerIdx=lines.findIndex(l=>l.toUpperCase().includes('ASIN'));
+    if(headerIdx===-1){dbg('RESERVED: no ASIN header found');return new Map();}
+    const hcols=lines[headerIdx].split(',').map(h=>h.trim().replace(/^"|"$/g,'').toLowerCase());
+    const asinIdx=hcols.findIndex(h=>h.includes('asin'));
+    const resvIdx=hcols.findIndex(h=>h.includes('reserved'));
+    dbg('RESERVED header:',hcols.join('|'),'asinIdx:',asinIdx,'resvIdx:',resvIdx);
+    if(asinIdx===-1){dbg('RESERVED: ASIN col not found');return new Map();}
+    const valIdx=resvIdx!==-1?resvIdx:3;
     const map=new Map();
-    for(let i=2;i<lines.length;i++){
-      // Simple CSV split — ASINs and numbers have no embedded commas
+    for(let i=headerIdx+1;i<lines.length;i++){
       const cols=lines[i].split(',');
-      const asin=norm(cols[0]||'');
-      const raw=String(cols[3]||'').trim(); // col D (0-indexed: 3)
+      const asin=norm((cols[asinIdx]||'').replace(/^"|"$/g,''));
+      const raw=String(cols[valIdx]||'').trim().replace(/^"|"$/g,'');
       if(!asin||asin==='ASIN'||asin==='-')continue;
       const val=parseFloat(raw.replace(/,/g,''));
       if(!isNaN(val)&&val!==0) map.set(asin, Math.abs(Math.round(val)));
