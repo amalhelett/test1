@@ -180,6 +180,9 @@ td:last-child{border-right:none;}
 /* Inbound column styling — pink accent */
 .n.ib{color:#f9a8d4;}
 .n.ib.z{color:var(--text3);}
+/* Reserved column styling — amber/gold accent */
+.n.rv{color:#fbbf24;}
+.n.rv.z{color:var(--text3);}
 .ntot{font-family:'IBM Plex Mono',monospace;font-weight:700;text-align:right;color:#4ade80;background:rgba(34,197,94,.05);}
 .ntot.low{color:var(--orange);background:rgba(245,158,11,.06);}
 .td-cost{font-family:'IBM Plex Mono',monospace;font-weight:600;text-align:right;color:#5eead4;}
@@ -363,6 +366,7 @@ td:last-child{border-right:none;}
             <th class="nc compact" onclick="sortBy('fba_available')"><div class="thi">FBA Avail<span class="sarr" data-col="fba_available">↕</span></div></th>
             <th class="nc compact" onclick="sortBy('fba_unsellable')"><div class="thi">FBA Unsell<span class="sarr" data-col="fba_unsellable">↕</span></div></th>
             <th class="nc compact" onclick="sortBy('inbound')"><div class="thi">Inbound<span class="sarr" data-col="inbound">↕</span></div></th>
+            <th class="nc compact" onclick="sortBy('fba_reserved')"><div class="thi">FBA Resv<span class="sarr" data-col="fba_reserved">↕</span></div></th>
             <th class="nc compact" onclick="sortBy('total')"><div class="thi">Total<span class="sarr" data-col="total">↕</span></div></th>
             <th class="nc compact" onclick="sortBy('po_qty')"><div class="thi">PO Qty<span class="sarr" data-col="po_qty">↕</span></div></th>
             <th onclick="sortBy('po_status')"><div class="thi">PO Status<span class="sarr" data-col="po_status">↕</span></div></th>
@@ -389,6 +393,8 @@ td:last-child{border-right:none;}
 // CONFIG
 // ══════════════════════════════════════════
 const SHEET_URL="https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4/export?format=xlsx";
+// PATCH 1: FBA Reserved sheet (GID 756550886) — col A = ASIN, col D = FBA Reserved, header row 2, data from row 3
+const RESERVED_SHEET_URL="https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4/export?format=csv&gid=756550886";
 const SH_SELL="Sellable_Inventory", SH_UN="Unsellable", SH_FBA="FBA_Inventory", SH_RPT="FBAInvReport";
 // PO sheet: try these names in order, then fall back to content-sniff
 const SH_LT_CANDIDATES = ["Leadtime","Lead Time","Lead time","leadtime","PO","Purchase Orders","Sheet1","Shipments"];
@@ -655,6 +661,7 @@ function downloadExcel(){
       'FBA Available':   r.fba_available,
       'FBA Unsellable':  r.fba_unsellable,
       'Inbound':         r.inbound,
+      'FBA Reserved':    r.fba_reserved || '',  // PATCH 8
       'Total Sellable':  r.total,
       'PO Qty':          r.po_qty || '',
       'PO Status':       r.po_status || '',
@@ -665,7 +672,7 @@ function downloadExcel(){
     };
   });
   const ws = XLSX.utils.json_to_sheet(exportData);
-  ws['!cols'] = [{wch:40},{wch:16},{wch:12},{wch:14},{wch:13},{wch:14},{wch:10},{wch:10},{wch:10},{wch:16},{wch:14},{wch:14},{wch:16},{wch:35}];
+  ws['!cols'] = [{wch:40},{wch:16},{wch:12},{wch:14},{wch:13},{wch:14},{wch:10},{wch:12},{wch:10},{wch:10},{wch:16},{wch:14},{wch:14},{wch:16},{wch:35}];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
   const today = new Date().toISOString().slice(0,10);
@@ -682,6 +689,37 @@ async function fetchData(){
   const ab=await r.arrayBuffer();
   dbg('Bytes:',ab.byteLength);
   return ab;
+}
+
+// ══════════════════════════════════════════
+// PATCH 2: FETCH FBA RESERVED MAP
+// Sheet GID 756550886 — col A = ASIN, col D = FBA Reserved
+// Header in row 2, data from row 3. Values may be negative → abs().
+// ══════════════════════════════════════════
+async function fetchReservedMap(){
+  try{
+    step('Fetching FBA Reserved…');
+    const r=await fetch(RESERVED_SHEET_URL);
+    if(!r.ok){dbg('Reserved sheet HTTP',r.status);return new Map();}
+    const text=await r.text();
+    const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+    // lines[0] = sheet row 1 (title/blank), lines[1] = row 2 (headers), lines[2+] = data
+    const map=new Map();
+    for(let i=2;i<lines.length;i++){
+      // Simple CSV split — ASINs and numbers have no embedded commas
+      const cols=lines[i].split(',');
+      const asin=norm(cols[0]||'');
+      const raw=String(cols[3]||'').trim(); // col D (0-indexed: 3)
+      if(!asin||asin==='ASIN'||asin==='-')continue;
+      const val=parseFloat(raw.replace(/,/g,''));
+      if(!isNaN(val)&&val!==0) map.set(asin, Math.abs(Math.round(val)));
+    }
+    dbg('Reserved map entries:',map.size);
+    return map;
+  }catch(e){
+    dbg('fetchReservedMap error:',e.message);
+    return new Map();
+  }
 }
 
 // ══════════════════════════════════════════
@@ -862,9 +900,9 @@ function buildInboundMap(rpt){
 }
 
 // ══════════════════════════════════════════
-// MERGE
+// MERGE — PATCH 3: accepts reservedMap as 6th param
 // ══════════════════════════════════════════
-function mergeData(sell,unsell,fba,rpt,lt){
+function mergeData(sell,unsell,fba,rpt,lt,reservedMap){
   step('Merging by ASIN…');
 
   const {bySkuMap, byAsinMap} = buildInboundMap(rpt);
@@ -875,7 +913,7 @@ function mergeData(sell,unsell,fba,rpt,lt){
   const sc={
     asin: detectCol(sh,['asin']),
     sku:  detectCol(sh,['sku','msku','sellersku','merchantsku']),
-    qty:  detectCol(sh,['sellable stock','Total Stock','sellable','sellableqty','availableqty','quantity','qty','stock','units','available']),
+    qty:  detectCol(sh,['sellable stock','sellablestock','sellable','sellableqty','availableqty','quantity','qty','stock','units','available']),
   };
 
   const uh=unsell.length?Object.keys(unsell[0]):[];
@@ -903,7 +941,6 @@ function mergeData(sell,unsell,fba,rpt,lt){
   if(sc.asin&&sc.qty){
     for(const row of sell){
       const asin=norm(row[sc.asin]);
-      // ── BLOCKLIST CHECK ──
       if(!asin||asin==='-'||asin==='ASIN'||ASIN_BLOCKLIST.has(asin))continue;
       sellMap.set(asin,(sellMap.get(asin)||0)+toNum(row[sc.qty]));
       const sku=str(row[sc.sku]||'');
@@ -915,7 +952,6 @@ function mergeData(sell,unsell,fba,rpt,lt){
   if(uc.asin&&lastDC){
     for(const row of unsell){
       const asin=norm(row[uc.asin]);
-      // ── BLOCKLIST CHECK ──
       if(!asin||asin==='-'||asin==='ASIN'||ASIN_BLOCKLIST.has(asin))continue;
       unMap.set(asin,(unMap.get(asin)||0)+toNum(row[lastDC]));
     }
@@ -927,7 +963,6 @@ function mergeData(sell,unsell,fba,rpt,lt){
   if(useConditionFormat){
     for(const row of fba){
       const asin=norm(row[fc.asin]);
-      // ── BLOCKLIST CHECK ──
       if(!asin||asin==='-'||asin==='ASIN'||ASIN_BLOCKLIST.has(asin))continue;
       const sku=str(row[fc.sku]||'');
       const condition=norm(row[fc.condition]);
@@ -942,7 +977,6 @@ function mergeData(sell,unsell,fba,rpt,lt){
   } else {
     for(const row of fba){
       const asin=norm(row[fc.asin]);
-      // ── BLOCKLIST CHECK ──
       if(!asin||asin==='-'||asin==='ASIN'||ASIN_BLOCKLIST.has(asin))continue;
       const sku=str(row[fc.sku]||'');
       if(sku&&!fbaSkuMap.has(asin))fbaSkuMap.set(asin,sku);
@@ -963,7 +997,6 @@ function mergeData(sell,unsell,fba,rpt,lt){
   const fbaSet=new Set([...fbaAvailMap.keys(),...fbaUnsellMap.keys(),...fbaSkuMap.keys()]);
 
   for(const asin of fbaSet){
-    // ── BLOCKLIST CHECK (safety net) ──
     if(ASIN_BLOCKLIST.has(asin))continue;
     const sku        = resolveSkuName(asin, fbaSkuMap.get(asin)||'--');
     const fbaAvail   = fbaAvailMap.get(asin)||0;
@@ -973,6 +1006,7 @@ function mergeData(sell,unsell,fba,rpt,lt){
     const fcUnsell   = unMap.get(asin)??0;
     const total      = (hasFCMatch?fcSell:0)+fbaAvail;
     const inbound    = resolveInbound(sku, asin);
+    const fba_reserved = reservedMap ? (reservedMap.get(asin)||0) : 0;  // PATCH 4
     const unit_cost  = COST_MAP[asin]||0;
     const total_cost = unit_cost * total;
     const poEntries  = poMap.get(asin)||[];
@@ -980,12 +1014,11 @@ function mergeData(sell,unsell,fba,rpt,lt){
     const po_status  = poEntries.length ? [...new Set(poEntries.map(e=>e.status))].filter(Boolean).join(', ') : '';
     const po_del_date= poEntries.length ? [...new Set(poEntries.map(e=>e.del_date))].filter(Boolean).join(', ') : '';
     const issues     = buildIssues({hasFCMatch,isFCOnly:false,fcSell,fbaAvail,fcUnsell,fbaUnsell,total});
-    merged.push({sku,asin,fc_sellable:hasFCMatch?fcSell:0,fc_unsellable:hasFCMatch?fcUnsell:0,fba_available:fbaAvail,fba_unsellable:fbaUnsell,inbound,total,po_qty,po_status,po_del_date,unit_cost,total_cost,hasFCMatch,source:'fba',issues,issue_count:issues.length});
+    merged.push({sku,asin,fc_sellable:hasFCMatch?fcSell:0,fc_unsellable:hasFCMatch?fcUnsell:0,fba_available:fbaAvail,fba_unsellable:fbaUnsell,inbound,fba_reserved,total,po_qty,po_status,po_del_date,unit_cost,total_cost,hasFCMatch,source:'fba',issues,issue_count:issues.length});
   }
 
   const allFCAsins=new Set([...sellMap.keys(),...unMap.keys()]);
   for(const asin of allFCAsins){
-    // ── BLOCKLIST CHECK (safety net) ──
     if(ASIN_BLOCKLIST.has(asin))continue;
     if(fbaSet.has(asin))continue;
     const fcSell   = sellMap.get(asin)??0;
@@ -993,6 +1026,7 @@ function mergeData(sell,unsell,fba,rpt,lt){
     const sku      = resolveSkuName(asin, sellSku.get(asin)||'--');
     const total    = fcSell;
     const inbound  = resolveInbound(sku, asin);
+    const fba_reserved = reservedMap ? (reservedMap.get(asin)||0) : 0;  // PATCH 5
     const unit_cost  = COST_MAP[asin]||0;
     const total_cost = unit_cost * total;
     const poEntries  = poMap.get(asin)||[];
@@ -1000,7 +1034,7 @@ function mergeData(sell,unsell,fba,rpt,lt){
     const po_status  = poEntries.length ? [...new Set(poEntries.map(e=>e.status))].filter(Boolean).join(', ') : '';
     const po_del_date= poEntries.length ? [...new Set(poEntries.map(e=>e.del_date))].filter(Boolean).join(', ') : '';
     const issues   = buildIssues({hasFCMatch:true,isFCOnly:true,fcSell,fbaAvail:0,fcUnsell,fbaUnsell:0,total});
-    merged.push({sku,asin,fc_sellable:fcSell,fc_unsellable:fcUnsell,fba_available:0,fba_unsellable:0,inbound,total,po_qty,po_status,po_del_date,unit_cost,total_cost,hasFCMatch:true,source:'fc',issues,issue_count:issues.length});
+    merged.push({sku,asin,fc_sellable:fcSell,fc_unsellable:fcUnsell,fba_available:0,fba_unsellable:0,inbound,fba_reserved,total,po_qty,po_status,po_del_date,unit_cost,total_cost,hasFCMatch:true,source:'fc',issues,issue_count:issues.length});
   }
 
   dbg('Merged (after blocklist):',merged.length);
@@ -1180,9 +1214,7 @@ function renderCharts(rows){
 // PO CHARTS
 // ══════════════════════════════════════════
 function renderPoCharts(rows){
-  // Collect active PO entries per SKU name from rows that have po_qty > 0
   const poRows = rows.filter(r=>r.po_qty>0);
-  // Group by status for donut
   const statusTotals = {};
   for(const entries of poMapGlobal.values()){
     for(const e of entries){
@@ -1193,13 +1225,11 @@ function renderPoCharts(rows){
   const totalActive = Object.values(statusTotals).reduce((s,v)=>s+v,0);
   set('dpototal', totalActive.toLocaleString());
 
-  // Bar chart — top PO rows by qty, colored by dominant status
   const sortedPo = [...poRows].sort((a,b)=>b.po_qty-a.po_qty).slice(0,12);
   const poLabels = sortedPo.map(r=>{const s=str(r.sku);return s.length>16?s.slice(0,15)+'…':s;});
   const transitColor  = 'rgba(56,189,248,0.8)';
   const productColor  = 'rgba(245,158,11,0.8)';
 
-  // Per-bar colors based on status
   const barColors = sortedPo.map(r=>{
     const s = r.po_status.toLowerCase();
     if(s.includes('in transit')) return transitColor;
@@ -1253,7 +1283,6 @@ function renderPoCharts(rows){
     }
   });
 
-  // Donut
   const statusKeys = Object.keys(statusTotals);
   const donutColors=['#38bdf8','#f59e0b','#a78bfa','#22c55e','#ef4444'];
   if(poDonutChart)poDonutChart.destroy();
@@ -1291,7 +1320,7 @@ function renderTable(rows){
   set('rbadge',`${rows.length.toLocaleString()} rows`);
   set('tfc',`Showing ${rows.length.toLocaleString()} of ${allRows.length.toLocaleString()} entries`);
   if(!rows.length){
-    tbody.innerHTML=`<tr><td colspan="14"><div class="empty"><div class="ei">📦</div><p>No rows match the current filter.</p></div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="15"><div class="empty"><div class="ei">📦</div><p>No rows match the current filter.</p></div></td></tr>`;
     return;
   }
   tbody.innerHTML=rows.map(r=>{
@@ -1303,6 +1332,9 @@ function renderTable(rows){
       ? `<td class="td-cost">${fmtCurFull(r.total_cost)}</td>`
       : `<td class="td-cost z">—</td>`;
     const inboundClass = r.inbound > 0 ? 'n ib compact' : 'n ib z compact';
+    // PATCH 7: FBA Reserved cell
+    const reservedClass = r.fba_reserved > 0 ? 'n rv compact' : 'n rv z compact';
+    const reservedHtml = `<td class="${reservedClass}">${r.fba_reserved > 0 ? r.fba_reserved.toLocaleString() : '—'}</td>`;
     const poQtyHtml = r.po_qty > 0
       ? `<td class="n compact" style="color:#38bdf8;">${r.po_qty.toLocaleString()}</td>`
       : `<td class="n compact z">—</td>`;
@@ -1320,6 +1352,7 @@ function renderTable(rows){
       <td class="n compact ${r.fba_available>0?'g':'z'}">${r.fba_available.toLocaleString()}</td>
       <td class="n compact ${r.fba_unsellable>0?'w':'z'}">${r.fba_unsellable.toLocaleString()}</td>
       <td class="${inboundClass}">${r.inbound > 0 ? r.inbound.toLocaleString() : '—'}</td>
+      ${reservedHtml}
       <td class="${tc} compact">${r.total.toLocaleString()}</td>
       ${poQtyHtml}
       ${poStatusHtml}
@@ -1394,14 +1427,15 @@ function sortBy(col){
 }
 
 // ══════════════════════════════════════════
-// BOOT
+// BOOT — PATCH 9: fetch reservedMap in parallel, pass to mergeData
 // ══════════════════════════════════════════
 async function boot(){
   const t0=performance.now();
   try{
-    const ab=await fetchData();
+    // Fetch both sources in parallel
+    const [ab, reservedMap] = await Promise.all([fetchData(), fetchReservedMap()]);
     const{sell,unsell,fba,rpt,lt}=parseSheets(ab);
-    allRows=mergeData(sell,unsell,fba,rpt,lt);
+    allRows=mergeData(sell,unsell,fba,rpt,lt,reservedMap);
     filteredRows=[...allRows];
     renderKPIs(allRows);
     renderCharts(allRows);
