@@ -1011,9 +1011,9 @@ function mergeData(sell,unsell,fba,rpt,lt,reservedMap){
     const hasFCMatch = sellMap.has(asin)||unMap.has(asin);
     const fcSell     = sellMap.get(asin)??0;
     const fcUnsell   = unMap.get(asin)??0;
-    const total      = (hasFCMatch?fcSell:0)+fbaAvail+fba_reserved;
     const inbound    = resolveInbound(sku, asin);
     const fba_reserved = reservedMap ? (reservedMap.get(asin)||0) : 0;  // PATCH 4
+    const total      = (hasFCMatch?fcSell:0)+fbaAvail+fba_reserved;
     const unit_cost  = COST_MAP[asin]||0;
     const total_cost = unit_cost * total;
     const poEntries  = poMap.get(asin)||[];
@@ -1031,9 +1031,9 @@ function mergeData(sell,unsell,fba,rpt,lt,reservedMap){
     const fcSell   = sellMap.get(asin)??0;
     const fcUnsell = unMap.get(asin)??0;
     const sku      = resolveSkuName(asin, sellSku.get(asin)||'--');
-    const total    = fcSell+fba_reserved;
     const inbound  = resolveInbound(sku, asin);
     const fba_reserved = reservedMap ? (reservedMap.get(asin)||0) : 0;  // PATCH 5
+    const total    = fcSell+fba_reserved;
     const unit_cost  = COST_MAP[asin]||0;
     const total_cost = unit_cost * total;
     const poEntries  = poMap.get(asin)||[];
