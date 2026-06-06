@@ -875,7 +875,7 @@ function mergeData(sell,unsell,fba,rpt,lt){
   const sc={
     asin: detectCol(sh,['asin']),
     sku:  detectCol(sh,['sku','msku','sellersku','merchantsku']),
-    qty:  detectCol(sh,['sellable stock','sellablestock','sellable','sellableqty','availableqty','quantity','qty','stock','units','available']),
+    qty:  detectCol(sh,['sellable stock','Total Stock','sellable','sellableqty','availableqty','quantity','qty','stock','units','available']),
   };
 
   const uh=unsell.length?Object.keys(unsell[0]):[];
