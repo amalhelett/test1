@@ -6,246 +6,373 @@
 <title>Purchase Orders Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
 :root{
---bg:#0f1117;
---bg2:#161820;
---card:#1e2130;
---border:#2a2d3e;
---text:#e8eaf6;
---text2:#9395a5;
---green:#22c55e;
---orange:#f59e0b;
---blue:#38bdf8;
---red:#ef4444;
---purple:#a78bfa;
+  --bg:#0a0c12;
+  --bg2:#111318;
+  --card:#14161f;
+  --border:#1f2233;
+  --border2:#2a2d42;
+  --text:#dde1f5;
+  --text2:#6b6f8a;
+  --accent:#4f8ef7;
+  --orange:#f0922b;
+  --green:#2dd98f;
+  --red:#f05b5b;
+  --purple:#9f7bea;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'IBM Plex Sans',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:Arial,sans-serif;padding:20px;}
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-.title{font-size:24px;font-weight:700;}
-.live{background:#1a2f20;color:#4ade80;padding:8px 15px;border-radius:20px;font-size:13px;}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;margin-bottom:20px;}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;}
-.card h4{font-size:12px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;}
-.card h2{font-size:28px;}
-.charts{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;}
-.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;}
-.chart-title{font-size:14px;margin-bottom:15px;font-weight:600;}
-.search{width:100%;max-width:350px;background:var(--bg2);border:1px solid var(--border);color:white;padding:12px;border-radius:8px;margin-bottom:15px;}
-.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:auto;}
-table{width:100%;border-collapse:collapse;}
-th{background:var(--bg2);padding:12px;text-align:left;font-size:12px;color:var(--text2);cursor:pointer;position:sticky;top:0;}
-td{padding:12px;border-bottom:1px solid var(--border);font-size:14px;}
-tr:hover{background:#25283b;}
-.badge{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;}
-.production{background:rgba(245,158,11,.15);color:#fbbf24;}
-.transit{background:rgba(56,189,248,.15);color:#38bdf8;}
-.delivered{background:rgba(34,197,94,.15);color:#4ade80;}
-@media(max-width:900px){.charts{grid-template-columns:1fr;}}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;min-height:100vh;}
+
+/* LAYOUT */
+.page{max-width:1400px;margin:0 auto;padding:24px 20px;}
+
+/* HEADER */
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;gap:12px;flex-wrap:wrap;}
+.header-left h1{font-size:20px;font-weight:600;letter-spacing:-.3px;}
+.header-left p{font-size:12px;color:var(--text2);margin-top:3px;font-family:var(--mono);}
+.live-pill{display:flex;align-items:center;gap:6px;background:#0d1f15;color:#2dd98f;border:1px solid #1a3d28;padding:6px 14px;border-radius:6px;font-size:12px;font-family:var(--mono);white-space:nowrap;}
+.live-dot{width:6px;height:6px;background:#2dd98f;border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* KPI STRIP */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:560px){.kpis{grid-template-columns:repeat(2,1fr);}}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);margin-bottom:8px;font-family:var(--mono);}
+.kpi-val{font-size:26px;font-weight:600;font-family:var(--mono);line-height:1;}
+.kpi-val.blue{color:var(--accent);}
+.kpi-val.orange{color:var(--orange);}
+.kpi-val.green{color:var(--green);}
+.kpi-val.purple{color:var(--purple);}
+
+/* CHARTS */
+.charts{display:grid;grid-template-columns:3fr 1fr;gap:16px;margin-bottom:24px;}
+@media(max-width:700px){.charts{grid-template-columns:1fr;}}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;}
+.chart-title{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);font-family:var(--mono);margin-bottom:16px;}
+.chart-wrap{position:relative;height:180px;}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.search{flex:1;min-width:180px;max-width:320px;background:var(--card);border:1px solid var(--border2);color:var(--text);padding:9px 14px;border-radius:8px;font-size:13px;font-family:var(--sans);outline:none;}
+.search:focus{border-color:var(--accent);}
+.search::placeholder{color:var(--text2);}
+.row-count{font-size:12px;color:var(--text2);font-family:var(--mono);margin-left:auto;}
+
+/* TABLE */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:auto;}
+table{width:100%;border-collapse:collapse;min-width:700px;}
+thead{position:sticky;top:0;z-index:10;}
+th{background:#0f111a;padding:10px 14px;text-align:left;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--text2);font-family:var(--mono);white-space:nowrap;user-select:none;border-bottom:1px solid var(--border2);}
+th.sortable{cursor:pointer;}
+th.sortable:hover{color:var(--text);}
+th .sort-icon{margin-left:5px;opacity:.4;font-size:10px;}
+th.asc .sort-icon::after{content:'↑';opacity:1;}
+th.desc .sort-icon::after{content:'↓';opacity:1;}
+th:not(.asc):not(.desc) .sort-icon::after{content:'↕';}
+td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;white-space:nowrap;}
+tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:#1a1d2a;}
+.mono{font-family:var(--mono);font-size:12px;}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 10px;border-radius:5px;font-size:11px;font-weight:600;font-family:var(--mono);letter-spacing:.3px;}
+.badge-production{background:rgba(240,146,43,.12);color:#f0922b;border:1px solid rgba(240,146,43,.25);}
+.badge-transit{background:rgba(79,142,247,.12);color:#4f8ef7;border:1px solid rgba(79,142,247,.25);}
+.badge-delivered{background:rgba(45,217,143,.12);color:#2dd98f;border:1px solid rgba(45,217,143,.25);}
+.badge-unknown{background:rgba(107,111,138,.12);color:#6b6f8a;border:1px solid rgba(107,111,138,.25);}
+
+.err{color:var(--red);font-family:var(--mono);font-size:13px;padding:20px;}
 </style>
 </head>
 <body>
+<div class="page">
 
-<div class="header">
-  <div>
-    <div class="title">Purchase Orders Dashboard</div>
-    <div id="sheetNameDisplay" style="font-size:12px;color:#94a3b8;margin-top:4px;">Loading sheet...</div>
+  <div class="header">
+    <div class="header-left">
+      <h1>Purchase Orders</h1>
+      <p id="sheetLabel">Loading…</p>
+    </div>
+    <div class="live-pill"><span class="live-dot"></span>LIVE</div>
   </div>
-  <div class="live">● LIVE</div>
-</div>
 
-<div class="kpis">
-  <div class="card"><h4>Total Active Units</h4><h2 id="totalUnits">0</h2></div>
-  <div class="card"><h4>In Production</h4><h2 id="productionUnits">0</h2></div>
-  <div class="card"><h4>In Transit</h4><h2 id="transitUnits">0</h2></div>
-  <div class="card"><h4>Delivered</h4><h2 id="deliveredUnits">0</h2></div>
-  <div class="card"><h4>Active POs</h4><h2 id="activePOs">0</h2></div>
-</div>
-
-<div class="charts">
-  <div class="chart-card">
-    <div class="chart-title">Incoming Inventory Timeline (Active Only)</div>
-    <canvas id="deliveryChart"></canvas>
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-label">Total Active Units</div><div class="kpi-val blue" id="kTotalUnits">—</div></div>
+    <div class="kpi"><div class="kpi-label">In Production</div><div class="kpi-val orange" id="kProd">—</div></div>
+    <div class="kpi"><div class="kpi-label">In Transit</div><div class="kpi-val" id="kTransit">—</div></div>
+    <div class="kpi"><div class="kpi-label">Delivered</div><div class="kpi-val green" id="kDelivered">—</div></div>
+    <div class="kpi"><div class="kpi-label">Active POs</div><div class="kpi-val purple" id="kActivePOs">—</div></div>
   </div>
-  <div class="chart-card">
-    <div class="chart-title">PO Status Breakdown (Active Only)</div>
-    <canvas id="statusChart"></canvas>
+
+  <div class="charts">
+    <div class="chart-card">
+      <div class="chart-title">Incoming Inventory — Active POs by Delivery Date</div>
+      <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Status Split</div>
+      <div class="chart-wrap"><canvas id="donutChart"></canvas></div>
+    </div>
   </div>
-</div>
 
-<input class="search" placeholder="Search PO / SKU / ASIN" onkeyup="filterRows(this.value)">
+  <div class="toolbar">
+    <input class="search" id="searchInput" placeholder="Search PO / SKU / ASIN…" oninput="applyFilters()">
+    <span class="row-count" id="rowCount"></span>
+  </div>
 
-<div class="table-wrap">
-  <table>
-    <thead>
-      <tr>
-        <th onclick="sortTable('PO No')">PO No</th>
-        <th onclick="sortTable('Date')">Date</th>
-        <th onclick="sortTable('Supplier')">Supplier</th>
-        <th onclick="sortTable('SKU')">SKU</th>
-        <th onclick="sortTable('Qty')">Qty</th>
-        <th onclick="sortTable('ASIN')">ASIN</th>
-        <th onclick="sortTable('Status')">Status</th>
-        <th onclick="sortTable('Date of Completion')">Completion</th>
-        <th onclick="sortTable('Date of Delivery')">Delivery</th>
-      </tr>
-    </thead>
-    <tbody id="tbody"></tbody>
-  </table>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="sortable" data-col="PO No">PO No<span class="sort-icon"></span></th>
+          <th class="sortable" data-col="_dateNum" data-label="Date">Date<span class="sort-icon"></span></th>
+          <th>Supplier</th>
+          <th>SKU</th>
+          <th class="sortable" data-col="Qty">Qty<span class="sort-icon"></span></th>
+          <th>ASIN</th>
+          <th>Status</th>
+          <th class="sortable" data-col="_completionNum" data-label="Completion">Completion<span class="sort-icon"></span></th>
+          <th class="sortable" data-col="_deliveryNum" data-label="Delivery">Delivery<span class="sort-icon"></span></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
 </div>
 
 <script>
-const SHEET_URL =
-  "https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4/export?format=xlsx&gid=1357679526";
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3_fCW_D09Nqhbf6Px9s6pR4/export?format=xlsx&gid=1357679526";
 
-let rowsData = [];
-let deliveryChart;
-let statusChart;
+let allRows = [];
+let sortCol = null;
+let sortDir = 1;
+let barChart, donutChart;
+
+/* ── DATE UTILS ── */
+function excelSerialToDate(serial){
+  if(!serial && serial !== 0) return null;
+  const n = Number(serial);
+  if(isNaN(n)) return null;
+  // Excel epoch: Jan 1 1900 = 1 (with Lotus 1900 bug)
+  const d = new Date(Date.UTC(1899,11,30) + n * 86400000);
+  return isNaN(d) ? null : d;
+}
+
+function parseDate(val){
+  if(!val && val !== 0) return null;
+  if(typeof val === 'number') return excelSerialToDate(val);
+  if(val instanceof Date) return val;
+  // string fallback
+  const d = new Date(val);
+  return isNaN(d) ? null : d;
+}
+
+function fmtDate(val){
+  const d = parseDate(val);
+  if(!d) return '';
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+function dateNum(val){
+  const d = parseDate(val);
+  return d ? d.getTime() : 0;
+}
 
 function isDelivered(r){
-  return String(r.Status||"").toLowerCase().includes("delivered");
+  return String(r.Status||'').toLowerCase().includes('delivered');
 }
 
-function renderKPIs(rows){
-  const active = rows.filter(r => !isDelivered(r));
-  const allDelivered = rows.filter(r => isDelivered(r));
+/* ── LOAD ── */
+async function loadData(){
+  try {
+    const res = await fetch(SHEET_URL);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const buf = await res.arrayBuffer();
+    const wb = XLSX.read(buf,{type:'array',cellDates:false});
 
+    const sheetName = wb.SheetNames.find(n => n.toLowerCase()==='purchases') || wb.SheetNames[0];
+    document.getElementById('sheetLabel').textContent = 'Sheet: '+sheetName;
+
+    const raw = XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{defval:''});
+
+    // Attach numeric date keys for sorting
+    allRows = raw.map(r => ({
+      ...r,
+      _dateNum:       dateNum(r['Date']),
+      _completionNum: dateNum(r['Date of Completion']),
+      _deliveryNum:   dateNum(r['Date of Delivery']),
+    }));
+
+    renderKPIs();
+    renderCharts();
+    renderTable(allRows);
+    bindSort();
+  } catch(e){
+    document.getElementById('sheetLabel').innerHTML = '<span class="err">Error: '+e.message+'</span>';
+  }
+}
+
+/* ── KPIs ── */
+function renderKPIs(){
+  const active = allRows.filter(r => !isDelivered(r));
   let total=0, prod=0, transit=0, delivered=0;
-
   active.forEach(r=>{
-    const qty = Number(r.Qty)||0;
-    total += qty;
-    const s = String(r.Status||"").toLowerCase();
-    if(s.includes("production")) prod += qty;
-    if(s.includes("transit"))    transit += qty;
+    const q=Number(r.Qty)||0;
+    total+=q;
+    const s=String(r.Status||'').toLowerCase();
+    if(s.includes('production')) prod+=q;
+    if(s.includes('transit'))    transit+=q;
   });
-
-  allDelivered.forEach(r=>{ delivered += Number(r.Qty)||0; });
-
-  document.getElementById("totalUnits").innerText     = total.toLocaleString();
-  document.getElementById("productionUnits").innerText = prod.toLocaleString();
-  document.getElementById("transitUnits").innerText   = transit.toLocaleString();
-  document.getElementById("deliveredUnits").innerText = delivered.toLocaleString();
-  document.getElementById("activePOs").innerText      = active.length;
+  allRows.filter(r=>isDelivered(r)).forEach(r=>{ delivered+=Number(r.Qty)||0; });
+  document.getElementById('kTotalUnits').textContent = total.toLocaleString();
+  document.getElementById('kProd').textContent       = prod.toLocaleString();
+  document.getElementById('kTransit').textContent    = transit.toLocaleString();
+  document.getElementById('kDelivered').textContent  = delivered.toLocaleString();
+  document.getElementById('kActivePOs').textContent  = active.length;
 }
 
-function renderCharts(rows){
-  // Only active rows for charts
-  const active = rows.filter(r => !isDelivered(r));
+/* ── CHARTS ── */
+function renderCharts(){
+  const active = allRows.filter(r => !isDelivered(r));
 
-  const deliveryMap = {};
-  const statusMap   = {};
-
+  // Bar: group by delivery date
+  const delivMap = {};
   active.forEach(r=>{
-    const delivery = r["Date of Delivery"];
-    if(delivery) deliveryMap[delivery] = (deliveryMap[delivery]||0) + (Number(r.Qty)||0);
-    const status = r.Status || "Unknown";
-    statusMap[status] = (statusMap[status]||0) + 1;
+    const label = fmtDate(r['Date of Delivery']) || 'TBD';
+    delivMap[label] = (delivMap[label]||0) + (Number(r.Qty)||0);
+  });
+  // Sort by date
+  const delivEntries = Object.entries(delivMap).sort((a,b)=>{
+    const da = new Date(a[0]), db = new Date(b[0]);
+    return da-db;
   });
 
-  if(deliveryChart) deliveryChart.destroy();
-  deliveryChart = new Chart(document.getElementById("deliveryChart"),{
-    type:"bar",
+  // Status donut
+  const statusMap = {};
+  active.forEach(r=>{
+    const s = r.Status||'Unknown';
+    statusMap[s] = (statusMap[s]||0)+1;
+  });
+
+  const chartDefaults = {
+    plugins:{legend:{labels:{color:'#6b6f8a',font:{family:"'IBM Plex Mono'",size:11}}}},
+  };
+
+  if(barChart) barChart.destroy();
+  barChart = new Chart(document.getElementById('barChart'),{
+    type:'bar',
     data:{
-      labels:Object.keys(deliveryMap),
+      labels: delivEntries.map(e=>e[0]),
       datasets:[{
-        label:"Units Arriving",
-        data:Object.values(deliveryMap),
-        backgroundColor:"rgba(56,189,248,0.6)"
+        label:'Units',
+        data: delivEntries.map(e=>e[1]),
+        backgroundColor:'rgba(79,142,247,0.55)',
+        borderColor:'rgba(79,142,247,0.9)',
+        borderWidth:1,
+        borderRadius:4,
       }]
     },
     options:{
-      plugins:{legend:{labels:{color:"#e8eaf6"}}},
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{...chartDefaults.plugins, legend:{display:false}},
       scales:{
-        x:{ticks:{color:"#9395a5"}},
-        y:{ticks:{color:"#9395a5"}}
+        x:{ticks:{color:'#6b6f8a',font:{family:"'IBM Plex Mono'",size:10}}, grid:{color:'#1f2233'}},
+        y:{ticks:{color:'#6b6f8a',font:{family:"'IBM Plex Mono'",size:10}}, grid:{color:'#1f2233'}}
       }
     }
   });
 
-  if(statusChart) statusChart.destroy();
-  statusChart = new Chart(document.getElementById("statusChart"),{
-    type:"doughnut",
+  if(donutChart) donutChart.destroy();
+  donutChart = new Chart(document.getElementById('donutChart'),{
+    type:'doughnut',
     data:{
-      labels:Object.keys(statusMap),
+      labels: Object.keys(statusMap),
       datasets:[{
-        data:Object.values(statusMap),
-        backgroundColor:["rgba(245,158,11,0.7)","rgba(56,189,248,0.7)","rgba(167,139,250,0.7)"]
+        data: Object.values(statusMap),
+        backgroundColor:['rgba(240,146,43,0.7)','rgba(79,142,247,0.7)','rgba(159,123,234,0.7)'],
+        borderColor:'#14161f',
+        borderWidth:2,
       }]
     },
     options:{
-      plugins:{legend:{labels:{color:"#e8eaf6"}}}
+      responsive:true,
+      maintainAspectRatio:false,
+      cutout:'65%',
+      plugins:{
+        legend:{
+          position:'bottom',
+          labels:{color:'#6b6f8a',font:{family:"'IBM Plex Mono'",size:10},padding:10,boxWidth:10}
+        }
+      }
     }
   });
 }
 
+/* ── TABLE ── */
 function renderTable(rows){
-  const tbody = document.getElementById("tbody");
+  document.getElementById('rowCount').textContent = rows.length+' rows';
+  const tbody = document.getElementById('tbody');
   tbody.innerHTML = rows.map(r=>{
-    const status = String(r.Status||"");
-    let cls = "";
-    if(status.toLowerCase().includes("production")) cls="production";
-    else if(status.toLowerCase().includes("transit")) cls="transit";
-    else if(status.toLowerCase().includes("delivered")) cls="delivered";
+    const s = String(r.Status||'');
+    const sl = s.toLowerCase();
+    let bc = sl.includes('production') ? 'badge-production'
+            : sl.includes('transit')   ? 'badge-transit'
+            : sl.includes('delivered') ? 'badge-delivered'
+            : 'badge-unknown';
     return `<tr>
-      <td>${r["PO No"]||""}</td>
-      <td>${r.Date||""}</td>
-      <td>${r.Supplier||""}</td>
-      <td>${r.SKU||""}</td>
-      <td>${r.Qty||""}</td>
-      <td>${r.ASIN||""}</td>
-      <td><span class="badge ${cls}">${status}</span></td>
-      <td>${r["Date of Completion"]||""}</td>
-      <td>${r["Date of Delivery"]||""}</td>
+      <td class="mono">${r['PO No']||''}</td>
+      <td class="mono">${fmtDate(r['Date'])}</td>
+      <td>${r['Supplier']||''}</td>
+      <td>${r['SKU']||''}</td>
+      <td class="mono">${r['Qty']||''}</td>
+      <td class="mono">${r['ASIN']||''}</td>
+      <td><span class="badge ${bc}">${s||'—'}</span></td>
+      <td class="mono">${fmtDate(r['Date of Completion'])}</td>
+      <td class="mono">${fmtDate(r['Date of Delivery'])}</td>
     </tr>`;
-  }).join("");
+  }).join('');
 }
 
-function filterRows(search){
-  search = search.toLowerCase();
-  const filtered = rowsData.filter(r => JSON.stringify(r).toLowerCase().includes(search));
-  renderTable(filtered);
-}
-
-let sortDirection = 1;
-function sortTable(column){
-  rowsData.sort((a,b)=>{
-    const x = a[column]||"";
-    const y = b[column]||"";
-    if(x>y) return sortDirection;
-    if(x<y) return -sortDirection;
-    return 0;
+/* ── SORT ── */
+function bindSort(){
+  document.querySelectorAll('th.sortable').forEach(th=>{
+    th.addEventListener('click',()=>{
+      const col = th.dataset.col;
+      if(sortCol === col){ sortDir *= -1; }
+      else { sortCol = col; sortDir = 1; }
+      document.querySelectorAll('th.sortable').forEach(t=>{ t.classList.remove('asc','desc'); });
+      th.classList.add(sortDir===1 ? 'asc' : 'desc');
+      applyFilters();
+    });
   });
-  sortDirection *= -1;
-  renderTable(rowsData);
 }
 
-async function loadData(){
-  try {
-    document.getElementById("sheetNameDisplay").innerText = "Fetching data...";
-    const response = await fetch(SHEET_URL);
-    if(!response.ok) throw new Error("HTTP " + response.status);
-    const buffer = await response.arrayBuffer();
-    const workbook = XLSX.read(buffer,{type:"array"});
+function applyFilters(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let rows = allRows.filter(r => !q || JSON.stringify(r).toLowerCase().includes(q));
 
-    // Target sheet by gid; fall back to name match
-    const sheetName = workbook.SheetNames.find(n =>
-      n.toLowerCase() === "purchases"
-    ) || workbook.SheetNames[0];
-
-    document.getElementById("sheetNameDisplay").innerText = "Sheet: " + sheetName;
-
-    const sheet = workbook.Sheets[sheetName];
-    rowsData = XLSX.utils.sheet_to_json(sheet,{defval:""});
-
-    renderKPIs(rowsData);
-    renderCharts(rowsData);
-    renderTable(rowsData);
-  } catch(err){
-    document.getElementById("sheetNameDisplay").innerText = "Error: " + err.message;
-    console.error(err);
+  if(sortCol){
+    rows = [...rows].sort((a,b)=>{
+      let x = a[sortCol], y = b[sortCol];
+      // numeric sort for qty and date numerics
+      if(sortCol==='Qty' || sortCol.endsWith('Num')){
+        x = Number(x)||0; y = Number(y)||0;
+        return (x-y)*sortDir;
+      }
+      x = String(x||'').toLowerCase();
+      y = String(y||'').toLowerCase();
+      return x < y ? -sortDir : x > y ? sortDir : 0;
+    });
   }
+
+  renderTable(rows);
 }
 
 loadData();
