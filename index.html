@@ -110,18 +110,47 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .dl-item{display:flex;align-items:center;gap:6px;font-size:.68rem;color:var(--text2);}
 .dl-sw{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
 
-/* ── CHART LAYOUT ROWS — flex wraps smoothly on any resize ── */
-.charts-row{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px;}
-.charts-row>.chart-card:first-child{flex:1 1 460px;min-width:0;}
-.charts-row>.chart-card:last-child{flex:0 0 260px;min-width:260px;}
+/* ── CHART LAYOUT ROWS — unified bar/donut sizing ── */
 
-.cost-charts-row{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:20px;}
-.cost-charts-row>.chart-card{flex:1 1 300px;min-width:0;}
+/* shared row wrapper */
+.charts-row,
+.cost-charts-row,
+#po-charts-row{
+  display:flex!important;
+  flex-wrap:wrap;
+  gap:14px;
+  margin-bottom:14px;
+  grid-template-columns:unset!important;
+}
+.cost-charts-row,
+#po-charts-row{ margin-bottom:20px; }
 
-/* po-charts-row: bar 2x wider — override inline style via id */
-#po-charts-row{display:flex!important;flex-wrap:wrap;gap:14px;margin-bottom:20px;grid-template-columns:unset!important;}
-#po-charts-row>.chart-card:first-child{flex:2 1 380px;min-width:0;}
-#po-charts-row>.chart-card:last-child{flex:1 1 200px;min-width:0;}
+/* BAR cards — all same flex basis */
+.charts-row>.chart-card:first-child,
+.cost-charts-row>.chart-card:first-child,
+#po-charts-row>.chart-card:first-child{
+  flex:3 1 420px;
+  min-width:0;
+}
+
+/* DONUT cards — all same fixed width */
+.charts-row>.chart-card:last-child,
+.cost-charts-row>.chart-card:last-child,
+#po-charts-row>.chart-card:last-child{
+  flex:0 0 300px;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+}
+
+/* On narrow screens donut cards go full width */
+@media(max-width:900px){
+  .charts-row>.chart-card:last-child,
+  .cost-charts-row>.chart-card:last-child,
+  #po-charts-row>.chart-card:last-child{
+    flex:1 1 100%;
+  }
+}
 
 /* ── TABLE SECTION ── */
 .tbl-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;}
@@ -838,7 +867,7 @@ function renderCharts(rows){
   if(costDonutChart)costDonutChart.destroy();
   const hasCost=top10cost.some(r=>r.total_cost>0);
   costDonutChart=new Chart($('ccostdonut').getContext('2d'),{type:'doughnut',data:{labels:top10cost.map(r=>r.sku),datasets:[{data:hasCost?top10cost.map(r=>r.total_cost>0?r.total_cost:0.001):[1],backgroundColor:hasCost?donutColors.slice(0,top10cost.length):['rgba(60,63,90,0.4)'],borderColor:'#1e2130',borderWidth:2,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{enabled:hasCost,backgroundColor:'#0a0b10',borderColor:'#2a2d3e',borderWidth:1,titleColor:'#e8eaf6',bodyColor:'#9395a5',padding:10,callbacks:{label:ctx=>`₹${ctx.raw.toLocaleString('en-IN',{maximumFractionDigits:0})} (${totalPortfolioCost>0?Math.round(ctx.raw/totalPortfolioCost*100):0}%)`}}}}});
-  $('costdonutlegend').innerHTML=top10cost.map((r,i)=>`<div class="dl-item" style="display:flex;align-items:center;gap:6px;min-width:0;"><div class="dl-sw" style="background:${donutColors[i]};flex-shrink:0;"></div><span style="font-size:.62rem;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.sku.length>22?r.sku.slice(0,21)+'…':r.sku}</span></div>`).join('');
+  $('costdonutlegend').innerHTML=top10cost.map((r,i)=>`<div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;"><span style="font-size:.62rem;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;">${r.sku.length>22?r.sku.slice(0,21)+'…':r.sku}</span><div style="width:10px;height:10px;border-radius:3px;background:${donutColors[i]};flex-shrink:0;"></div></div>`).join('');
 }
 
 function renderPoCharts(rows){
