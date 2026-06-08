@@ -157,7 +157,19 @@ td:last-child { border-right:none; }
 .badge-production { background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.25); color:#fbbf24; }
 .badge-transit    { background:rgba(56,189,248,.12);  border:1px solid rgba(56,189,248,.25);  color:#38bdf8; }
 .badge-delivered  { background:rgba(34,197,94,.12);   border:1px solid rgba(34,197,94,.25);   color:#4ade80; }
+.badge-cancelled  { background:rgba(239,68,68,.12);   border:1px solid rgba(239,68,68,.25);    color:#f87171; }
 .badge-unknown    { background:rgba(107,111,138,.12); border:1px solid rgba(107,111,138,.25); color:#6b6f8a; }
+
+/* TOGGLE SWITCH */
+.toggle-wrap { display:flex; align-items:center; gap:8px; }
+.toggle-lbl { font-size:.69rem; font-family:'IBM Plex Mono',monospace; color:var(--text3); white-space:nowrap; transition:color .2s; }
+.toggle-lbl.on { color:#4ade80; }
+.toggle { position:relative; width:36px; height:20px; flex-shrink:0; }
+.toggle input { opacity:0; width:0; height:0; position:absolute; }
+.toggle-track { position:absolute; inset:0; background:var(--bg3); border:1px solid var(--border2); border-radius:20px; cursor:pointer; transition:background .2s,border-color .2s; }
+.toggle input:checked + .toggle-track { background:rgba(34,197,94,.25); border-color:rgba(34,197,94,.5); }
+.toggle-thumb { position:absolute; top:3px; left:3px; width:12px; height:12px; background:var(--text3); border-radius:50%; transition:transform .2s,background .2s; pointer-events:none; }
+.toggle input:checked ~ .toggle-thumb { transform:translateX(16px); background:#4ade80; }
 
 /* table footer */
 .tbl-ft { padding:8px 16px; background:var(--bg2); border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:.67rem; color:var(--text3); }
@@ -181,7 +193,7 @@ td:last-child { border-right:none; }
     <div class="hdr-sub" id="last-sync">Connecting…</div>
   </div>
   <div style="display:flex;align-items:center;gap:12px;">
-    <button class="inv-btn" onclick="window.location.href='https://amalhelett.github.io/test1/index.html'">Inventory Dashboard</button>
+    <button class="inv-btn" onclick="window.location.href='/test1/pages/inventory.html'">Inventory Dashboard</button>
     <div class="sync-pill">
       <div class="sdot" id="sdot"></div>
       <span id="slbl">Loading</span>
@@ -247,6 +259,14 @@ td:last-child { border-right:none; }
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" id="sinput" placeholder="Search PO / SKU / ASIN…" oninput="applyFilters()"/>
       </div>
+      <label class="toggle-wrap" title="Show / hide Delivered rows">
+        <span class="toggle-lbl" id="toggleLbl">Delivered: Hidden</span>
+        <label class="toggle">
+          <input type="checkbox" id="deliveredToggle" onchange="onToggleDelivered()"/>
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </label>
       <button class="btn-dl" onclick="downloadExcel()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Export Excel
@@ -294,6 +314,27 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/1jZv_Qqeg2RWXssYroxyS3
 let allRows = [], filteredRows = [];
 let sortCol = null, sortDir = 1;
 let barChart, donutChart;
+let showDelivered = false;   // toggle — Delivered hidden by default
+
+function isCancelled(r){ return r.status.toLowerCase().includes('cancel'); }
+
+// Returns rows for KPIs/charts/table based on toggle
+// Cancelled always visible; Delivered controlled by toggle
+function getViewRows(){
+  if(showDelivered) return allRows;
+  return allRows.filter(r => isDelivered(r) ? false : true);
+  // note: cancelled rows always pass (they are not delivered)
+}
+
+function onToggleDelivered(){
+  showDelivered = $('deliveredToggle').checked;
+  const lbl = $('toggleLbl');
+  lbl.textContent = showDelivered ? 'Delivered: Shown' : 'Delivered: Hidden';
+  lbl.className   = 'toggle-lbl' + (showDelivered ? ' on' : '');
+  renderKPIs();
+  renderCharts();
+  applyFilters();
+}
 
 // ── UTILS ──
 const $ = id => document.getElementById(id);
@@ -374,7 +415,8 @@ async function loadData(){
 function isDelivered(r){ return r.status.toLowerCase().includes('delivered'); }
 
 function renderKPIs(){
-  const active = allRows.filter(r => !isDelivered(r));
+  const view = getViewRows();
+  const active = view.filter(r => !isDelivered(r));
   let total=0, prod=0, transit=0, delivered=0;
   active.forEach(r=>{
     total += r.qty;
@@ -382,6 +424,7 @@ function renderKPIs(){
     if(s.includes('production')) prod    += r.qty;
     if(s.includes('transit'))   transit  += r.qty;
   });
+  // delivered KPI always from full allRows for reference
   allRows.filter(r=>isDelivered(r)).forEach(r=>{ delivered += r.qty; });
   const uniqueSKUs = new Set(active.map(r=>r.asin||r.sku)).size;
 
@@ -395,7 +438,7 @@ function renderKPIs(){
 
 // ── CHARTS ──
 function renderCharts(){
-  const active = allRows.filter(r => !isDelivered(r));
+  const active = getViewRows().filter(r => !isDelivered(r));
 
   // Bar: group by delivery date, stack by status
   const transitByDate = {}, prodByDate = {}, dateOrder = [];
@@ -485,12 +528,13 @@ function statusBadgeClass(s){
   if(sl.includes('production')) return 'badge-production';
   if(sl.includes('transit'))    return 'badge-transit';
   if(sl.includes('delivered'))  return 'badge-delivered';
+  if(sl.includes('cancel'))     return 'badge-cancelled';
   return 'badge-unknown';
 }
 
 function renderTable(rows){
   set('rbadge', rows.length.toLocaleString()+' rows');
-  set('tfc', `Showing ${rows.length.toLocaleString()} of ${allRows.length.toLocaleString()} entries`);
+  set('tfc', `Showing ${rows.length.toLocaleString()} of ${getViewRows().length.toLocaleString()} entries`);
   const tbody = $('tbody');
   if(!rows.length){
     tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><div class="ei">📦</div><p>No rows match.</p></div></td></tr>`;
@@ -523,7 +567,7 @@ function sortBy(col){
 // ── FILTER ──
 function applyFilters(){
   const q = $('sinput').value.trim().toLowerCase();
-  let rows = [...allRows];
+  let rows = getViewRows();
   if(q) rows = rows.filter(r =>
     r.po_no.toLowerCase().includes(q) ||
     r.sku.toLowerCase().includes(q)   ||
