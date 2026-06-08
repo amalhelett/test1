@@ -389,8 +389,8 @@ td:last-child{border-right:none;}
     </div>
     <div class="chart-card" style="display:flex;flex-direction:column;">
       <div class="chart-hd"><div class="chart-title">Cost Distribution (Top 10 by Cost/Unit)</div></div>
-      <div style="display:flex;align-items:center;gap:16px;flex:1;min-height:0;">
-        <div id="costdonutlegend" style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:0;overflow:hidden;"></div>
+      <div style="display:flex;align-items:center;justify-content:center;flex:1;min-height:0;">
+
         <div class="donut-ring" style="flex-shrink:0;width:160px;height:160px;">
           <canvas id="ccostdonut" width="160" height="160"></canvas>
           <div class="donut-ctr"><div class="dc-val" style="font-size:1.1rem;" id="dctotal">—</div><div class="dc-lbl">Total Cost</div></div>
@@ -867,7 +867,7 @@ function renderCharts(rows){
   if(costDonutChart)costDonutChart.destroy();
   const hasCost=top10cost.some(r=>r.total_cost>0);
   costDonutChart=new Chart($('ccostdonut').getContext('2d'),{type:'doughnut',data:{labels:top10cost.map(r=>r.sku),datasets:[{data:hasCost?top10cost.map(r=>r.total_cost>0?r.total_cost:0.001):[1],backgroundColor:hasCost?donutColors.slice(0,top10cost.length):['rgba(60,63,90,0.4)'],borderColor:'#1e2130',borderWidth:2,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{enabled:hasCost,backgroundColor:'#0a0b10',borderColor:'#2a2d3e',borderWidth:1,titleColor:'#e8eaf6',bodyColor:'#9395a5',padding:10,callbacks:{label:ctx=>`₹${ctx.raw.toLocaleString('en-IN',{maximumFractionDigits:0})} (${totalPortfolioCost>0?Math.round(ctx.raw/totalPortfolioCost*100):0}%)`}}}}});
-  $('costdonutlegend').innerHTML=top10cost.map((r,i)=>`<div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;"><span style="font-size:.62rem;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;">${r.sku.length>22?r.sku.slice(0,21)+'…':r.sku}</span><div style="width:10px;height:10px;border-radius:3px;background:${donutColors[i]};flex-shrink:0;"></div></div>`).join('');
+
 }
 
 function renderPoCharts(rows){
